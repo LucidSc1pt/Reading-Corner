@@ -10,6 +10,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+      // Cek tema tersimpan atau preferensi sistem sebelum halaman dirender
+      if (localStorage.getItem('x1_theme') === 'dark' || (!('x1_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    </script>
+
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -74,10 +83,10 @@
       <div class="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white p-5 sm:p-8 shadow-lg">
         <div class="relative z-10 space-y-2 max-w-2xl">
           <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-[11px] font-bold backdrop-blur-md">
-            <i class="ph-bold ph-sparkle text-amber-300"></i> Cloud Firestore Real-time
+            <i class="ph-bold ph-sparkle text-amber-300"></i> Online
           </span>
           <h1 class="text-xl sm:text-3xl font-extrabold tracking-tight">Perpustakaan Digital Kelas X-1</h1>
-          <p class="text-emerald-100 text-xs sm:text-sm">Semua buku, ulasan, dan komentar tersinkronisasi online untuk seluruh siswa sekelas.</p>
+          <p class="text-emerald-100 text-xs sm:text-sm">Semua buku, ulasan, dan komentar tersinkronisasi online untuk seluruh siswa atau orang yang mengakses website ini.</p>
         </div>
       </div>
 
@@ -284,7 +293,7 @@
   <div class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t px-2 py-1.5">
     <div class="grid grid-cols-4 gap-1 text-center">
       <button onclick="navigateTo('katalog')" id="nav-mob-katalog" class="nav-mob-btn py-1 text-emerald-600 flex flex-col items-center"><i class="ph-bold ph-squares-four text-lg"></i><span class="text-[10px] font-bold">Katalog</span></button>
-      <button onclick="navigateTo('jurnal')" id="nav-mob-jurnal" class="nav-mob-btn py-1 text-slate-400 flex flex-col items-center"><i class="ph-bold ph-journal text-lg"></i><span class="text-[10px] font-bold">Jurnal</span></button>
+      <button onclick="navigateTo('jurnal')" id="nav-mob-jurnal" class="nav-mob-btn py-1 text-slate-400 flex flex-col items-center"><i class="ph-bold ph-book text-lg"></i><span class="text-[10px] font-bold">Jurnal</span></button>
       <button onclick="navigateTo('leaderboard')" id="nav-mob-leaderboard" class="nav-mob-btn py-1 text-slate-400 flex flex-col items-center"><i class="ph-bold ph-trophy text-lg"></i><span class="text-[10px] font-bold">Peringkat</span></button>
       <button onclick="navigateTo('request')" id="nav-mob-request" class="nav-mob-btn py-1 text-slate-400 flex flex-col items-center"><i class="ph-bold ph-paper-plane-tilt text-lg"></i><span class="text-[10px] font-bold">Usul</span></button>
     </div>
@@ -330,12 +339,13 @@
 
     // ⚙️ MASUKKAN CONFIG FIREBASE KAMU DI SINI
     const firebaseConfig = {
-      apiKey: "GANTI_DENGAN_API_KEY_KAMU",
-      authDomain: "GANTI_DENGAN_AUTH_DOMAIN",
-      projectId: "GANTI_DENGAN_PROJECT_ID",
-      storageBucket: "GANTI_DENGAN_STORAGE_BUCKET",
-      messagingSenderId: "GANTI_DENGAN_MESSAGING_SENDER_ID",
-      appId: "GANTI_DENGAN_APP_ID"
+      apiKey: "AIzaSyBkXyoiU1EAgNLvuAAv2Zi5b5ek1_Lo-q8",
+      authDomain: "reading-corner-x-1.firebaseapp.com",
+      projectId: "reading-corner-x-1",
+      storageBucket: "reading-corner-x-1.firebasestorage.app",
+      messagingSenderId: "213324937815",
+      appId: "1:213324937815:web:205019bc62af5ab5344112",
+      measurementId: "G-63BL4BHS6F"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -350,7 +360,7 @@
         category: 'Fiksi',
         description: 'Kisah inspiratif sepuluh anak Belitung dalam menggapai mimpi.',
         cover: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&auto=format&fit=crop&q=80',
-        pages: ["Halaman 1: Sekolah Muhammadiyah di Belitung tampak bersahaja...", "Halaman 2: Semangat Lintang menempuh puluhan kilometer."]
+        pages: ['Halaman 1: Bab pendahuluan menceritakan awal mula kisah ekspedisi sains ini. || <img src="https://images.unsplash.com/photo-1532012197267-da84d127e765?w=600" class="rounded-xl mx-auto my-4 max-h-80 shadow-md"> || Halaman 3: Grafik dan hasil eksperimen menunjukkan peningkatan yang signifikan.', "Halaman 2: Semangat Lintang menempuh puluhan kilometer."]
       }
     ];
 
@@ -361,7 +371,7 @@
     let requests = [];
     let bookmarks = JSON.parse(localStorage.getItem('x1_bookmarks')) || [];
     let isAdmin = localStorage.getItem('x1_is_admin') === 'true';
-
+    
     let selectedBookId = null;
     let readerCurrentPage = 0;
     let readerFontSize = 16;
@@ -434,7 +444,15 @@
     }
 
     window.toggleDarkMode = function() {
-      document.documentElement.classList.toggle('dark');
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('x1_theme', 'light');
+        showToast('Mode Terang diaktifkan');
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('x1_theme', 'dark');
+        showToast('Mode Gelap diaktifkan');
+      }
     }
 
     // Admin Authentication via Firestore `config/admin`
@@ -658,17 +676,32 @@
     }
 
     // Reader Mode
-    window.openReaderPage = function() { readerCurrentPage = 0; renderReaderContent(); navigateTo('reader'); }
-    function renderReaderContent() {
-      const book = books.find(b => b.id === selectedBookId);
-      if(!book) return;
-      const pages = book.pages || [`Halaman 1: ${book.description}`];
-      document.getElementById('reader-curr-page').textContent = readerCurrentPage + 1;
-      document.getElementById('reader-total-page').textContent = pages.length;
-      document.getElementById('reader-body-text').innerHTML = `<p>${pages[readerCurrentPage]}</p>`;
-      document.getElementById('reader-prev-btn').disabled = readerCurrentPage === 0;
-      document.getElementById('reader-next-btn').disabled = readerCurrentPage === pages.length - 1;
-    }
+window.openReaderPage = function() {
+  readerCurrentPage = 0;
+  
+  // Ambil tema reader yang tersimpan (default 'light')
+  const savedReaderTheme = localStorage.getItem('x1_reader_theme') || 'light';
+  applyReaderTheme(savedReaderTheme);
+  
+  renderReaderContent();
+  navigateTo('reader');
+}
+function renderReaderContent() {
+  const book = books.find(b => b.id === selectedBookId);
+  if(!book) return;
+  
+  const pages = book.pages || [`Halaman 1: ${book.description}`];
+  
+  document.getElementById('reader-curr-page').textContent = readerCurrentPage + 1;
+  document.getElementById('reader-total-page').textContent = pages.length;
+  
+  // Menggunakan innerHTML agar tag HTML / Gambar (<img ...>) bisa dirender dengan sempurna di reader
+  const pageContent = pages[readerCurrentPage];
+  document.getElementById('reader-body-text').innerHTML = pageContent;
+  
+  document.getElementById('reader-prev-btn').disabled = readerCurrentPage === 0;
+  document.getElementById('reader-next-btn').disabled = readerCurrentPage === pages.length - 1;
+}
     window.turnReaderPage = function(delta) {
       const book = books.find(b => b.id === selectedBookId);
       const pages = book.pages || [1];
@@ -679,12 +712,23 @@
       readerFontSize = Math.max(12, Math.min(28, readerFontSize + delta));
       document.getElementById('reader-body-text').style.fontSize = `${readerFontSize}px`;
     }
-    window.setReaderTheme = function(theme) {
-      const c = document.getElementById('reader-canvas');
-      c.className = theme === 'sepia' ? "bg-[#fbf0d9] text-amber-950 rounded-2xl p-5 sm:p-10 border shadow-md min-h-[60vh] flex flex-col justify-between" :
-                    theme === 'dark' ? "bg-slate-950 text-slate-200 rounded-2xl p-5 sm:p-10 border shadow-md min-h-[60vh] flex flex-col justify-between" :
-                    "bg-white text-slate-800 rounded-2xl p-5 sm:p-10 border shadow-md min-h-[60vh] flex flex-col justify-between";
-    }
+window.setReaderTheme = function(theme) {
+  localStorage.setItem('x1_reader_theme', theme); // Simpan ke memori lokal
+  applyReaderTheme(theme);
+}
+
+function applyReaderTheme(theme) {
+  const c = document.getElementById('reader-canvas');
+  if(!c) return;
+  
+  if (theme === 'sepia') {
+    c.className = "bg-[#fbf0d9] text-amber-950 rounded-2xl p-5 sm:p-10 border border-amber-200 shadow-md min-h-[60vh] flex flex-col justify-between transition-all";
+  } else if (theme === 'dark') {
+    c.className = "bg-slate-950 text-slate-200 rounded-2xl p-5 sm:p-10 border border-slate-800 shadow-md min-h-[60vh] flex flex-col justify-between transition-all";
+  } else {
+    c.className = "bg-white text-slate-800 rounded-2xl p-5 sm:p-10 border border-slate-200 shadow-md min-h-[60vh] flex flex-col justify-between transition-all";
+  }
+}
 
     // Admin Add & Delete Book
     window.openAddBookModal = function() { document.getElementById('add-book-modal').classList.remove('hidden'); }
@@ -801,6 +845,6 @@
       t.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
       setTimeout(() => t.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none'), 2500);
     }
-  </script>
+</script>
 </body>
 </html>
