@@ -292,7 +292,7 @@
   <!-- MOBILE BOTTOM NAV -->
   <div class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t px-2 py-1.5">
     <div class="grid grid-cols-4 gap-1 text-center">
-      <button onclick="navigateTo('katalog')" id="nav-mob-katalog" class="nav-mob-btn py-1 text-emerald-600 flex flex-col items-center"><i class="ph-bold ph-squares-four text-lg"></i><span class="text-[10px] font-bold">Katalog</span></button>
+      <button onclick="navigateTo('katalog')" id="nav-mob-katalog" class="nav-mob-btn py-1 text-emerald-400 flex flex-col items-center"><i class="ph-bold ph-squares-four text-lg"></i><span class="text-[10px] font-bold">Katalog</span></button>
       <button onclick="navigateTo('jurnal')" id="nav-mob-jurnal" class="nav-mob-btn py-1 text-slate-400 flex flex-col items-center"><i class="ph-bold ph-book text-lg"></i><span class="text-[10px] font-bold">Jurnal</span></button>
       <button onclick="navigateTo('leaderboard')" id="nav-mob-leaderboard" class="nav-mob-btn py-1 text-slate-400 flex flex-col items-center"><i class="ph-bold ph-trophy text-lg"></i><span class="text-[10px] font-bold">Peringkat</span></button>
       <button onclick="navigateTo('request')" id="nav-mob-request" class="nav-mob-btn py-1 text-slate-400 flex flex-col items-center"><i class="ph-bold ph-paper-plane-tilt text-lg"></i><span class="text-[10px] font-bold">Usul</span></button>
@@ -380,6 +380,28 @@
     let tempCoverBase64 = '';
     let lastCommentTime = 0;
 
+// Daftar Kata Kasar / Toxic (Bisa kamu tambah sendiri)
+const BAD_WORDS = [
+  'anjing', 'babi', 'goblok', 'tolol', 'bangsat', 'kontol', 'memek', 
+  'ngentot', 'kampang', 'pantek', 'puki', 'bajingan', 'jancok', 'bebal', 'titit'
+];
+
+// Fungsi Memeriksa Kata Kasar
+function containsBadWords(text) {
+  const lower = text.toLowerCase();
+  return BAD_WORDS.some(word => lower.includes(word));
+}
+
+// Fungsi Sensor Kata Kasar (Mengubah jadi ***)
+function sanitizeText(text) {
+  let cleaned = text;
+  BAD_WORDS.forEach(word => {
+    const regex = new RegExp(word, 'gi');
+    cleaned = cleaned.replace(regex, '***');
+  });
+  return cleaned;
+}
+
     const categories = ['Semua', 'Fiksi', 'Non-Fiksi', 'Sains & Teknologi', 'Sejarah', 'Modul Kelas'];
 
     // Load Data from Firestore on startup
@@ -437,11 +459,30 @@
     }
 
     // SPA Routing
-    window.navigateTo = function(pageView) {
-      document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
-      document.getElementById(`view-${pageView}`).classList.remove('hidden');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+window.navigateTo = function(pageView) {
+  // 1. Sembunyikan semua halaman utama (.page-view)
+  document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
+  
+  // 2. Tampilkan halaman yang dipilih berdasarkan ID-nya
+  const targetView = document.getElementById(`view-${pageView}`);
+  if (targetView) {
+    targetView.classList.remove('hidden');
+  }
+  
+  // 3. Reset semua tombol navigasi mobile ke warna redup (tidak aktif)
+  document.querySelectorAll('.nav-mob-btn').forEach(el => {
+    el.className = "nav-mob-btn py-1 text-slate-400 flex flex-col items-center";
+  });
+  
+  // 4. Sorot tombol navigasi mobile yang sedang aktif (berwarna emerald)
+  const activeMobBtn = document.getElementById(`nav-mob-${pageView}`);
+  if (activeMobBtn) {
+    activeMobBtn.className = "nav-mob-btn py-1 text-emerald-400 flex flex-col items-center";
+  }
+
+  // 5. Gulir layar kembali ke paling atas secara halus
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
     window.toggleDarkMode = function() {
       if (document.documentElement.classList.contains('dark')) {
@@ -483,15 +524,6 @@
           alert('PIN Admin Salah!');
         }
       } catch(e) {
-        if(pin === "x1juara") {
-          isAdmin = true;
-          localStorage.setItem('x1_is_admin', 'true');
-          updateAdminUI();
-          closeAdminAuth();
-          showToast('Login Admin Berhasil (Offline Mode)!');
-        } else {
-          alert('PIN salah!');
-        }
       }
     }
 
@@ -594,7 +626,7 @@
       document.getElementById('detail-category').textContent = book.category;
       document.getElementById('detail-description').textContent = book.description;
       document.getElementById('detail-cover').src = book.cover;
-      document.getElementById('detail-pages-count').textContent = (book.pages ? book.pages.length * 40 : 120);
+      document.getElementById('detail-pages-count').textContent = (book.pages ? book.pages.length : 1);
 
       document.getElementById('detail-fav-icon').className = bookmarks.includes(bookId) ? 'ph-fill ph-star text-amber-400 text-lg' : 'ph-bold ph-star text-slate-400 text-lg';
 
@@ -603,23 +635,48 @@
       navigateTo('detail');
     }
 
-    window.submitReview = async function(e) {
-      e.preventDefault();
-      const name = document.getElementById('review-name').value.trim();
-      const rating = document.getElementById('review-rating').value;
-      const text = document.getElementById('review-text').value.trim();
+window.submitReview = async function(e) {
+    e.preventDefault();
+    const name = document.getElementById('review-name').value.trim();
+    const rating = document.getElementById('review-rating').value;
+    const text = document.getElementById('review-text').value.trim();
 
-      const newRev = { bookId: selectedBookId, name, rating, text, date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) };
-      try {
+    if (containsBadWords(name) || containsBadWords(text)) {
+        alert("⚠️ Peringatan: Komentar mengandung kata-kata yang tidak sopan! Harap gunakan bahasa yang baik dan bijak.");
+        // Atau bisa juga otomatis di-sensor:
+        // text = sanitizeText(text);
+        return;
+    }
+        
+    const newRev = { bookId: selectedBookId, name, rating, text, date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) };
+    try {
         await addDoc(collection(db, "reviews"), newRev);
         showToast('Ulasan berhasil dikirim ke Cloud!');
         document.getElementById('review-text').value = '';
         await loadAllDataFromFirestore();
         openBookDetail(selectedBookId);
-      } catch(err) {
+    } catch(err) {
         showToast('Gagal mengirim ulasan.');
-      }
     }
+}
+
+window.reportItem = async function(type, itemId, contentSnippet) {
+  const reason = prompt("Sampaikan alasan kamu melaporkan postingan ini ke Admin:");
+  if (!reason) return;
+
+  try {
+    await addDoc(collection(db, "reports"), {
+      type: type, // 'comment', 'review', 'journal'
+      itemId: itemId,
+      snippet: contentSnippet,
+      reason: reason,
+      date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+    });
+    showToast('Laporan berhasil dikirim ke Admin. Terima kasih!');
+  } catch(err) {
+    showToast('Gagal mengirim laporan.');
+  }
+}
 
     function renderReviewsAndRating(bookId) {
       const bookRev = reviews[bookId] || [];
@@ -638,17 +695,26 @@
     }
 
     // Komentar Firestore
-    window.submitComment = async function(e) {
-      e.preventDefault();
+window.submitComment = async function(e) {
+    e.preventDefault();
+  
+    const name = document.getElementById('comment-name').value.trim();
+    let text = document.getElementById('comment-text').value.trim();
+
+    // 🛑 Cek Kata Kasar Otomatis
+    if (containsBadWords(name) || containsBadWords(text)) {
+        alert("⚠️ Peringatan: Komentar mengandung kata-kata yang tidak sopan! Harap gunakan bahasa yang baik dan bijak.");
+        // Atau bisa juga otomatis di-sensor:
+        // text = sanitizeText(text);
+        return;
+    }
       const now = Date.now();
-      if(now - lastCommentTime < 10000) {
-        document.getElementById('comment-cooldown-notice').textContent = 'Tunggu 10 detik sebelum komentar lagi (Anti-Spam).';
+      if(now - lastCommentTime < 30000) {
+        document.getElementById('comment-cooldown-notice').textContent = 'Tunggu 30 detik sebelum komentar lagi (Anti-Spam).';
         return;
       }
       document.getElementById('comment-cooldown-notice').textContent = '';
 
-      const name = document.getElementById('comment-name').value.trim();
-      const text = document.getElementById('comment-text').value.trim();
       const newCom = { bookId: selectedBookId, name, text, date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }), replies: [] };
 
       try {
@@ -663,17 +729,31 @@
       }
     }
 
-    function renderComments(bookId) {
-      const bookCom = comments[bookId] || [];
-      const container = document.getElementById('comments-list');
-      if(bookCom.length === 0) { container.innerHTML = '<p class="text-xs text-slate-400 italic">Belum ada diskusi.</p>'; return; }
-      container.innerHTML = bookCom.map(c => `
+function renderComments(bookId) {
+    const bookCom = comments[bookId] || [];
+    const container = document.getElementById('comments-list');
+    if(bookCom.length === 0) { container.innerHTML = '<p class="text-xs text-slate-400 italic">Belum ada diskusi.</p>'; return; }
+    container.innerHTML = bookCom.map(c => `
         <div class="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border text-xs space-y-2">
           <div class="flex justify-between font-bold"><span class="text-emerald-600">${c.name}</span><span class="text-[10px] text-slate-400">${c.date}</span></div>
           <p class="text-slate-600 dark:text-slate-300">${c.text}</p>
         </div>
-      `).join('');
-    }
+
+        <div class="flex items-center gap-2">
+            <!-- Tombol Laporkan untuk Siswa -->
+            <button onclick="reportItem('comment', '${c.id}', '${c.text.substring(0, 30)}...')" class="text-[10px] text-slate-400 hover:text-rose-500 font-semibold" title="Laporkan Komentar">
+                <i class="ph-bold ph-warning text-xs"></i> Laporkan
+            </button>
+    
+            <!-- Tombol Hapus Khusus Admin -->
+            ${isAdmin ? `
+                <button onclick="deleteComment('${c.id}')" class="text-[10px] text-rose-500 hover:underline font-bold">
+                    <i class="ph-bold ph-trash text-xs"></i> Hapus
+                </button>
+            ` : ''}
+        </div>
+    `).join('');
+}
 
     // Reader Mode
 window.openReaderPage = function() {
