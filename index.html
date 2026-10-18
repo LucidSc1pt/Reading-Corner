@@ -667,44 +667,32 @@ onAuthStateChanged(auth, async (user) => {
   const userAuthBtn = document.getElementById('user-auth-btn') || document.getElementById('auth-nav-button');
   
   if (user) {
-    console.log("User login:", user.email);
+    console.log("User login UID:", user.uid);
     
     // Cek apakah UID user terdaftar sebagai Admin di Firestore
     try {
       const adminDoc = await getDoc(doc(db, "admins", user.uid));
       if (adminDoc.exists()) {
         isAdmin = true;
-        console.log("Status: Admin terverifikasi aman via Firestore.");
+        console.log("Status: ADMIN TERVERIFIKASI!");
+      } else {
+        console.log("Status: Siswa biasa.");
       }
     } catch (err) {
       console.error("Gagal memeriksa status admin:", err);
     }
     
-    if (typeof updateUserProfileUI === 'function') {
-      updateUserProfileUI(user);
-    }
-    
-    if (typeof selectedBookId !== 'undefined' && selectedBookId && typeof reviews !== 'undefined') {
-      renderReviewsAndRating(selectedBookId);
-    }
+    await updateUserProfileUI(user);
 
     if (userAuthBtn) {
       userAuthBtn.onclick = () => navigateTo('profile');
       userAuthBtn.innerHTML = `<i class="ph-bold ph-user-circle text-emerald-500 text-base"></i> <span class="hidden sm:inline">${user.displayName || 'Profil'}</span>`;
     }
 
-    if (typeof loadAdminReports === 'function') {
-      loadAdminReports();
-    }
-
   } else {
     currentUser = null;
     isAdmin = false;
-    console.log("Tidak ada user yang login.");
-    
-    if (typeof updateUserProfileUI === 'function') {
-      updateUserProfileUI(null);
-    }
+    await updateUserProfileUI(null);
 
     if (userAuthBtn) {
       userAuthBtn.onclick = () => openUserAuthModal();
@@ -879,43 +867,40 @@ async function updateUserProfileUI(user) {
   const avatarImg = document.getElementById('profile-avatar-img');
   const nameText = document.getElementById('profile-display-name');
   const emailText = document.getElementById('profile-email-text');
-  const adminBadge = document.getElementById('profile-admin-badge');
   const bioText = document.getElementById('profile-bio-text');
   const editProfileForm = document.getElementById('edit-profile-form');
   const loginProfButton = document.getElementById('open-login-profile');
-  const adminReportsSection = document.getElementById('admin-reports-section');
 
+  // 1. Jika user BELUM LOGIN
   if (!user) {
     if (bioText) bioText.textContent = `"Login terlebih dahulu untuk mengedit bio"`;
     if (editProfileForm) editProfileForm.classList.add('hidden');
     if (loginProfButton) loginProfButton.classList.remove('hidden');
-    if (adminBadge) adminBadge.classList.add('hidden');
-    if (adminReportsSection) adminReportsSection.classList.add('hidden');
+    if (nameText) nameText.textContent = "Tamu / Siswa";
+    if (emailText) emailText.textContent = "Belum terhubung";
+    if (avatarImg) avatarImg.src = "https://placehold.co/150x150/10b981/ffffff?text=User";
+    updateAdminUI();
     return;
   }
 
+  // 2. Jika user SUDAH LOGIN
   const photoURL = user.photoURL || `https://placehold.co/150x150/10b981/ffffff?text=${user.email ? user.email[0].toUpperCase() : 'U'}`;
   
   if (avatarImg) avatarImg.src = photoURL;
   if (nameText) nameText.textContent = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
   if (emailText) emailText.textContent = user.email || '';
 
-  if (isAdmin) {
-    if (adminBadge) adminBadge.classList.remove('hidden');
-    if (adminReportsSection) adminReportsSection.classList.remove('hidden');
-  } else {
-    if (adminBadge) adminBadge.classList.add('hidden');
-    if (adminReportsSection) adminReportsSection.classList.add('hidden');
-  }
-
+  // Atur Tampilan Form
   if (editProfileForm) editProfileForm.classList.remove('hidden');
   if (loginProfButton) loginProfButton.classList.add('hidden');
 
+  // Isi data ke Form Edit
   const editName = document.getElementById('edit-display-name');
   const editAvatar = document.getElementById('edit-avatar-url');
   if (editName) editName.value = user.displayName || '';
   if (editAvatar) editAvatar.value = user.photoURL || '';
 
+  // 3. Ambil Bio dari Firestore
   try {
     const userDocSnap = await getDoc(doc(db, "users", user.uid));
     const editBio = document.getElementById('edit-bio');
@@ -931,6 +916,9 @@ async function updateUserProfileUI(user) {
   } catch(err) {
     console.error("Gagal memuat bio:", err);
   }
+
+  // Update UI status admin
+  updateAdminUI();
 }
 
 window.handleAvatarUpload = function(e) {
@@ -1148,16 +1136,29 @@ function updateAdminUI() {
   const btnText = document.getElementById('admin-btn-text');
   const btnIcon = document.getElementById('admin-icon');
   const addBtn = document.getElementById('admin-add-btn');
+  const adminBadge = document.getElementById('profile-admin-badge');
+  const adminReportsSection = document.getElementById('admin-reports-section');
+
   if(isAdmin) {
-    btnText.textContent = "Admin (Aktif)";
-    btnIcon.className = "ph-bold ph-shield-check text-emerald-500 text-base";
+    if(btnText) btnText.textContent = "Admin (Aktif)";
+    if(btnIcon) btnIcon.className = "ph-bold ph-shield-check text-emerald-500 text-base";
     if(addBtn) addBtn.classList.remove('hidden');
+    if(adminBadge) adminBadge.classList.remove('hidden');
+    if(adminReportsSection) adminReportsSection.classList.remove('hidden');
+    
+    // Muat laporan khusus admin
+    if (typeof loadAdminReports === 'function') {
+      loadAdminReports();
+    }
   } else {
-    btnText.textContent = "Admin";
-    btnIcon.className = "ph-bold ph-lock-key text-slate-400";
+    if(btnText) btnText.textContent = "Admin";
+    if(btnIcon) btnIcon.className = "ph-bold ph-lock-key text-slate-400";
     if(addBtn) addBtn.classList.add('hidden');
+    if(adminBadge) adminBadge.classList.add('hidden');
+    if(adminReportsSection) adminReportsSection.classList.add('hidden');
   }
-  renderBooks();
+  
+  if (typeof renderBooks === 'function') renderBooks();
 }
 
 function renderCategoryChips() {
