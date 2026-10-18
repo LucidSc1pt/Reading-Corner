@@ -70,6 +70,10 @@
             <i class="ph-bold ph-moon text-base dark:hidden"></i>
             <i class="ph-bold ph-sun text-base hidden dark:block"></i>
           </button>
+            <!-- Tombol Navigasi Profil Desktop -->
+            <button id="nav-desk-profile" onclick="navigateTo('profile')" class="nav-desk-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 flex items-center gap-1.5">
+                <i class="ph-bold ph-user-circle text-base"></i> Profil
+            </button>
         </div>
       </div>
     </div>
@@ -281,6 +285,63 @@
       </div>
     </section>
 
+      <!-- VIEW: PROFIL USER -->
+    <section id="view-profile" class="page-view hidden space-y-6 max-w-2xl mx-auto">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-6">
+        <div class="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+          <div class="relative">
+            <img id="profile-avatar-img" src="https://placehold.co/150x150/10b981/ffffff?text=User" class="w-24 h-24 rounded-full object-cover border-4 border-emerald-500 shadow-md">
+            <span id="profile-admin-badge" class="hidden absolute bottom-0 right-0 bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow">ADMIN</span>
+          </div>
+          <div class="space-y-1">
+            <div class="flex items-center gap-2 justify-center sm:justify-start">
+              <h2 id="profile-display-name" class="text-xl font-extrabold text-slate-900 dark:text-white">Nama Pengguna</h2>
+            </div>
+            <p id="profile-email-text" class="text-xs text-slate-500 font-semibold">email@sekolah.com</p>
+            <p id="profile-bio-text" class="text-xs text-slate-600 dark:text-slate-300 italic pt-1">"Gemar membaca buku sejarah dan fiksi."</p>
+          </div>
+        </div>
+
+      <!-- SECTION DASBOR LAPORAN ADMIN (Tampil hanya jika login sebagai Admin) -->
+        <div id="admin-reports-section" class="hidden bg-rose-50 dark:bg-rose-950/30 rounded-3xl border border-rose-200 dark:border-rose-900/50 p-5 space-y-3">
+          <div class="flex justify-between items-center border-b border-rose-200 dark:border-rose-900/50 pb-2">
+            <div class="flex items-center gap-2">
+              <i class="ph-bold ph-warning-circle text-rose-500 text-lg"></i>
+              <h3 class="font-extrabold text-rose-950 dark:text-rose-200 text-xs sm:text-sm">Laporan Masuk dari Siswa</h3>
+            </div>
+            <span id="reports-count-badge" class="bg-rose-500 text-white font-bold text-[10px] px-2 py-0.5 rounded-full">0</span>
+          </div>
+
+          <!-- Container Daftar Laporan -->
+          <div id="reports-list-container" class="space-y-2 max-h-60 overflow-y-auto">
+        <!-- Diisi otomatis via JS -->
+          </div>
+        </div>
+
+        <!-- Form Edit Profil -->
+        <form onsubmit="saveUserProfile(event)" class="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border space-y-3 text-xs">
+          <h3 class="font-bold text-slate-700 dark:text-slate-300">Edit Informasi Profil</h3>
+          <div>
+            <label class="block font-semibold mb-1">Nama Tampilan (Siswa X-1) *</label>
+            <input type="text" id="edit-display-name" required class="w-full px-3 py-2 bg-white dark:bg-slate-800 border rounded-xl">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Foto Profil (URL / Upload)</label>
+            <input type="url" id="edit-avatar-url" placeholder="https://..." class="w-full px-3 py-2 bg-white dark:bg-slate-800 border rounded-xl mb-1">
+            <input type="file" accept="image/*" onchange="handleAvatarUpload(event)" class="w-full text-[10px]">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Bio Singkat</label>
+            <textarea id="edit-bio" rows="2" placeholder="Tuliskan kata mutiara atau hobi membacamu..." class="w-full px-3 py-2 bg-white dark:bg-slate-800 border rounded-xl"></textarea>
+          </div>
+          <div class="flex justify-between items-center pt-2">
+            <button type="button" onclick="handleUserLogout()" class="px-4 py-2 bg-rose-100 dark:bg-rose-950/60 text-rose-600 font-bold rounded-xl hover:bg-rose-200">Keluar (Logout)</button>
+            <button type="submit" class="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl shadow-md">Simpan Perubahan</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
   </div>
 
   <!-- MOBILE BOTTOM NAV -->
@@ -447,64 +508,6 @@
   </div>
 </div>
 
-<!-- VIEW: PROFIL USER -->
-<section id="view-profile" class="page-view hidden space-y-6 max-w-2xl mx-auto">
-  <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-6">
-    <div class="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-      <div class="relative">
-        <img id="profile-avatar-img" src="https://placehold.co/150x150/10b981/ffffff?text=User" class="w-24 h-24 rounded-full object-cover border-4 border-emerald-500 shadow-md">
-        <span id="profile-admin-badge" class="hidden absolute bottom-0 right-0 bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow">ADMIN</span>
-      </div>
-      <div class="space-y-1">
-        <div class="flex items-center gap-2 justify-center sm:justify-start">
-          <h2 id="profile-display-name" class="text-xl font-extrabold text-slate-900 dark:text-white">Nama Pengguna</h2>
-        </div>
-        <p id="profile-email-text" class="text-xs text-slate-500 font-semibold">email@sekolah.com</p>
-        <p id="profile-bio-text" class="text-xs text-slate-600 dark:text-slate-300 italic pt-1">"Gemar membaca buku sejarah dan fiksi."</p>
-      </div>
-    </div>
-
-      <!-- SECTION DASBOR LAPORAN ADMIN (Tampil hanya jika login sebagai Admin) -->
-<div id="admin-reports-section" class="hidden bg-rose-50 dark:bg-rose-950/30 rounded-3xl border border-rose-200 dark:border-rose-900/50 p-5 space-y-3">
-  <div class="flex justify-between items-center border-b border-rose-200 dark:border-rose-900/50 pb-2">
-    <div class="flex items-center gap-2">
-      <i class="ph-bold ph-warning-circle text-rose-500 text-lg"></i>
-      <h3 class="font-extrabold text-rose-950 dark:text-rose-200 text-xs sm:text-sm">Laporan Masuk dari Siswa</h3>
-    </div>
-    <span id="reports-count-badge" class="bg-rose-500 text-white font-bold text-[10px] px-2 py-0.5 rounded-full">0</span>
-  </div>
-
-  <!-- Container Daftar Laporan -->
-  <div id="reports-list-container" class="space-y-2 max-h-60 overflow-y-auto">
-    <!-- Diisi otomatis via JS -->
-  </div>
-</div>
-
-
-    <!-- Form Edit Profil -->
-    <form onsubmit="saveUserProfile(event)" class="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border space-y-3 text-xs">
-      <h3 class="font-bold text-slate-700 dark:text-slate-300">Edit Informasi Profil</h3>
-      <div>
-        <label class="block font-semibold mb-1">Nama Tampilan (Siswa X-1) *</label>
-        <input type="text" id="edit-display-name" required class="w-full px-3 py-2 bg-white dark:bg-slate-800 border rounded-xl">
-      </div>
-      <div>
-        <label class="block font-semibold mb-1">Foto Profil (URL / Upload)</label>
-        <input type="url" id="edit-avatar-url" placeholder="https://..." class="w-full px-3 py-2 bg-white dark:bg-slate-800 border rounded-xl mb-1">
-        <input type="file" accept="image/*" onchange="handleAvatarUpload(event)" class="w-full text-[10px]">
-      </div>
-      <div>
-        <label class="block font-semibold mb-1">Bio Singkat</label>
-        <textarea id="edit-bio" rows="2" placeholder="Tuliskan kata mutiara atau hobi membacamu..." class="w-full px-3 py-2 bg-white dark:bg-slate-800 border rounded-xl"></textarea>
-      </div>
-      <div class="flex justify-between items-center pt-2">
-        <button type="button" onclick="handleUserLogout()" class="px-4 py-2 bg-rose-100 dark:bg-rose-950/60 text-rose-600 font-bold rounded-xl hover:bg-rose-200">Keluar (Logout)</button>
-        <button type="submit" class="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl shadow-md">Simpan Perubahan</button>
-      </div>
-    </form>
-  </div>
-</section>
-
   <!-- TOAST -->
   <div id="toast" class="fixed bottom-16 md:bottom-6 right-4 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-xs transition-all duration-300 translate-y-20 opacity-0 pointer-events-none"><i class="ph-bold ph-check-circle text-emerald-400"></i><span id="toast-msg">Info</span></div>
 
@@ -656,7 +659,7 @@ window.toggleMusicWidgetMinimize = function() {
 window.addEventListener('DOMContentLoaded', () => {
   initMusicPlayer();
 });
-
+/*
 // 🔐 2. AUTHENTICATION & LOGIN SESSION PERSISTENCE
 onAuthStateChanged(auth, async (user) => {
   currentUser = user;
@@ -671,7 +674,51 @@ onAuthStateChanged(auth, async (user) => {
     currentUser = null;
   }
 });
+*/
+onAuthStateChanged(auth, async (user) => {
+  currentUser = user;
+  
+  // Ambil khusus tombol profil user (buat ID baru atau gunakan id khusus user)
+  const userAuthBtn = document.getElementById('user-auth-btn') || document.getElementById('auth-nav-button');
+  
+  if (user) {
+    // --- KONDISI KETIKA USER / SISWA LOGIN ---
+    console.log("User login:", user.email);
+    
+    // 1. Perbarui tampilan profil
+    if (typeof updateUserProfileUI === 'function') {
+      updateUserProfileUI(user);
+    }
+    
+    // 2. Render ulang ulasan jika sedang di halaman detail buku
+    if (typeof selectedBookId !== 'undefined' && selectedBookId && typeof reviews !== 'undefined') {
+      renderReviewsAndRating(selectedBookId);
+    }
 
+    // 3. Ubah tombol user di header menjadi menu "Profil"
+    if (userAuthBtn) {
+      userAuthBtn.onclick = () => navigateTo('profile');
+      userAuthBtn.innerHTML = `<i class="ph-bold ph-user-circle text-emerald-500 text-base"></i> <span class="hidden sm:inline">${user.displayName || 'Profil'}</span>`;
+    }
+
+    // 4. Jika akun ini adalah admin, muat laporan masuk
+    if (typeof loadAdminReports === 'function') {
+      loadAdminReports();
+    }
+
+  } else {
+    // --- KONDISI KETIKA BELUM LOGIN ---
+    currentUser = null;
+    console.log("Tidak ada user yang login.");
+
+    // Kembalikan tombol user di header menjadi "Login"
+    if (userAuthBtn) {
+      userAuthBtn.onclick = () => openUserAuthModal();
+      userAuthBtn.innerHTML = `<i class="ph-bold ph-lock-key text-slate-400"></i> <span class="hidden sm:inline">Login</span>`;
+    }
+  }
+});
+    
 // Open/Close Auth Modal
 window.openUserAuthModal = function() { document.getElementById('user-auth-modal').classList.remove('hidden'); }
 window.closeUserAuthModal = function() { document.getElementById('user-auth-modal').classList.add('hidden'); }
