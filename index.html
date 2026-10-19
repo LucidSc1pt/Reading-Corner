@@ -17,6 +17,7 @@
       document.documentElement.classList.remove('dark');
     }
   </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -518,7 +519,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, addDoc, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+    import { getStorage, ref, uploadBytesResumable, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
     import { 
       getAuth, 
       signInWithPopup, 
@@ -539,6 +540,11 @@
       appId: "1:213324937815:web:205019bc62af5ab5344112",
       measurementId: "G-63BL4BHS6F"
     };
+
+          // Inisialisasi Supabase (Ganti dengan URL dan Key punya kamu)
+    const SUPABASE_URL = "https://huhgdqvildeepkwxzzjl.supabase.co/rest/v1/";
+    const SUPABASE_ANON_KEY = "sb_publishable_6SA6zPt1COvdxqBNOrMk2w_sQvpfMue";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -1535,7 +1541,7 @@
       }
     }
 
-    window.saveBookEntry = async function(e) {
+ window.saveBookEntry = async function(e) {
   e.preventDefault();
   
   const bookId = document.getElementById('form-book-id').value;
@@ -1549,61 +1555,30 @@
   let pdfUrl = document.getElementById('form-book-pdf').value.trim();
   const pdfFileInput = document.getElementById('form-book-pdf-file');
 
-  const progressContainer = document.getElementById('upload-progress-container');
-  const progressBar = document.getElementById('upload-progress-bar');
-  const progressPercentage = document.getElementById('upload-percentage');
-  const speedText = document.getElementById('upload-speed');
-  const sizesText = document.getElementById('upload-sizes');
-
   try {
-    // Jika admin mengunggah file PDF baru
+    // Jika admin mengunggah file PDF baru ke Supabase
     if (pdfFileInput && pdfFileInput.files[0]) {
       const pdfFile = pdfFileInput.files[0];
-      progressContainer.classList.remove('hidden'); // Tampilkan progress bar
-
-      const { ref, uploadBytesResumable, getDownloadURL } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js");
-      const storageRef = ref(storage, `pdfs/${Date.now()}_${pdfFile.name}`);
+      showToast('Mengunggah file PDF ke Supabase Storage...');
       
-      const uploadTask = uploadBytesResumable(storageRef, pdfFile);
-      let startTime = Date.now();
+      const fileName = `${Date.now()}_${pdfFile.name}`;
+      
+      // Upload ke bucket 'buku-pdf' di Supabase
+      const { data, error } = await supabase.storage
+        .from('buku-pdf')
+        .upload(fileName, pdfFile);
 
-      // Jalankan proses async dengan janji (Promise) untuk melacak progress
-      pdfUrl = await new Promise((resolve, reject) => {
-        uploadTask.on('state_changed', 
-          (snapshot) => {
-            // Hitung persentase
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            const transferredMB = (snapshot.bytesTransferred / (1024 * 1024)).toFixed(2);
-            const totalMB = (snapshot.totalBytes / (1024 * 1024)).toFixed(2);
-            
-            // Hitung kecepatan upload (KB/s atau MB/s)
-            const elapsedTime = (Date.now() - startTime) / 1000; // detik
-            const speed = elapsedTime > 0 ? (snapshot.bytesTransferred / elapsedTime) : 0; 
-            let speedFormatted = '';
-            if (speed > 1024 * 1024) {
-              speedFormatted = (speed / (1024 * 1024)).toFixed(1) + ' MB/s';
-            } else {
-              speedFormatted = (speed / 1024).toFixed(1) + ' KB/s';
-            }
+      if (error) {
+        console.error('Supabase Error:', error);
+        throw new Error(error.message);
+      }
 
-            // Update UI Progress Bar
-            progressBar.style.width = progress + '%';
-            progressPercentage.textContent = Math.round(progress) + '%';
-            sizesText.textContent = `${transferredMB} MB / ${totalMB} MB`;
-            speedText.textContent = speedFormatted;
-          }, 
-          (error) => {
-            progressContainer.classList.add('hidden');
-            reject(error);
-          }, 
-          async () => {
-            // Jika berhasil selesai diunggah
-            const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-            progressContainer.classList.add('hidden');
-            resolve(downloadUrl);
-          }
-        );
-      });
+      // Ambil URL publik file PDF tersebut
+      const { data: publicUrlData } = supabase.storage
+        .from('buku-pdf')
+        .getPublicUrl(fileName);
+
+      pdfUrl = publicUrlData.publicUrl;
     }
 
     const pages = rawContent ? rawContent.split('||').map(p => p.trim()) : ["Halaman 1..."];
@@ -1625,6 +1600,7 @@
       await loadAllDataFromFirestore();
       if(selectedBookId === bookId) openBookDetail(bookId);
     } else {
+      const { addDoc, collection } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
       await addDoc(collection(db, "books"), bookData);
       showToast('Buku baru & file PDF berhasil disimpan!');
       closeAddBookModal();
@@ -1632,7 +1608,6 @@
     }
   } catch(err) {
     console.error(err);
-    if(progressContainer) progressContainer.classList.add('hidden');
     showToast('Gagal mengunggah file PDF atau menyimpan buku.');
   }
 }
