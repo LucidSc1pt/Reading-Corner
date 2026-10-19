@@ -4,12 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Pojok Baca Digital X-1</title>
-  <!-- Tailwind CSS -->
+  
+  <!-- Tailwind CSS v4 -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @custom-variant dark (&:where(.dark, .dark *));
+  </style>
+
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
   <script>
     if (localStorage.getItem('x1_theme') === 'dark' || (!('x1_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       document.documentElement.classList.add('dark');
@@ -18,25 +24,8 @@
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-            serif: ['Merriweather', 'serif'],
-          },
-          boxShadow: {
-            'card': '0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 0 1px 1px rgba(0, 0, 0, 0.05)',
-            'card-hover': '0 20px 40px -10px rgba(16, 185, 129, 0.2), 0 0 2px 1px rgba(16, 185, 129, 0.1)',
-            'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.08)'
-          }
-        }
-      }
-    }
-  </script>
-  <!-- PDF.js Library (Mozilla) -->
+  
+  <!-- PDF.js Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -56,6 +45,7 @@
     }
   </style>
 </head>
+
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans min-h-full flex flex-col transition-colors duration-300">
 
   <!-- TOP HEADER / NAVBAR -->
@@ -729,6 +719,11 @@
       }
     };
 
+    let authInitializedResolve;
+    const authInitialized = new Promise((resolve) => {
+      authInitializedResolve = resolve;
+    });
+
     onAuthStateChanged(auth, async (user) => {
       currentUser = user;
       isAdmin = false;
@@ -742,7 +737,7 @@
             userRole = adminDoc.data().role || "Admin";
           }
         } catch (err) {
-          console.error("Gagal cek admin:", err);
+          console.error("Gagal memeriksa status admin:", err);
         }
         await updateUserProfileUI(user);
       } else {
@@ -752,6 +747,12 @@
         await updateUserProfileUI(null);
       }
       updateAdminUI();
+
+      // Selesaikan penahan auth saat pertama kali sistem mendeteksinya
+      if (authInitializedResolve) {
+        authInitializedResolve(user);
+        authInitializedResolve = null; 
+      }
     });
         
     window.openUserAuthModal = function() { document.getElementById('user-auth-modal').classList.remove('hidden'); }
@@ -845,21 +846,30 @@
     }
 
     const categories = ['Semua', 'Fiksi', 'Non-Fiksi', 'Sains & Teknologi', 'Sejarah', 'Modul Kelas'];
-
+        
     window.onload = async function() {
+      // 1. WAJIB: Tunggu Auth selesai inisialisasi & data Firestore ter-load 100%
+      await authInitialized;
       await trackVisitorCount();
-      updateUserProfileUI(currentUser);
-      updateAdminUI();
       renderCategoryChips();
       await loadAllDataFromFirestore();
       
       const hash = window.location.hash.substring(1);
+      const savedBookId = localStorage.getItem('x1_selected_book');
+
+      // 2. Baru jalankan navigasi setelah data benar-benar siap di memori
       if(hash) {
         if(hash.startsWith('detail-')) {
-          openBookDetail(hash.replace('detail-', ''), false);
+          await openBookDetail(hash.replace('detail-', ''), false);
+        } else if(hash === 'reader' && savedBookId) {
+          selectedBookId = savedBookId;
+          await openBookDetail(savedBookId, false);
+          openReaderPage();
         } else {
           navigateTo(hash, false);
         }
+      } else if (savedBookId) {
+        await openBookDetail(savedBookId, false);
       }
     };
 
@@ -1223,10 +1233,23 @@
       }
     }
 
-    window.openBookDetail = function(bookId, updateHash = true) {
+    window.openBookDetail = async function(bookId, updateHash = true) {
       selectedBookId = bookId;
+      localStorage.setItem('x1_selected_book', bookId);
+
+      // Jika karena suatu hal data books masih kosong, load ulang dulu
+      if (!books || books.length === 0 || (books.length === 1 && books[0].id === 'b-1')) {
+        await loadAllDataFromFirestore();
+      }
+
       const book = books.find(b => b.id === bookId);
-      if(!book) return;
+      if(!book) {
+        // Jika buku benar-benar tidak ditemukan di database, kembalikan ke katalog
+        localStorage.removeItem('x1_selected_book');
+        showToast("Buku tidak ditemukan.");
+        navigateTo('katalog');
+        return;
+      }
 
       document.getElementById('detail-title').textContent = book.title;
       document.getElementById('detail-author').textContent = 'Penulis: ' + book.author;
