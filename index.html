@@ -413,9 +413,25 @@
         </div>
         <div>
           <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">File PDF Buku (Upload Langsung)</label>
-          <input type="file" id="form-book-pdf-file" accept="application/pdf" class="w-full text-[10px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1.5 mb-1.5 text-slate-500">
+          <input type="file" id="form-book-pdf-file" accept="application/pdf" class="w-full text-[10px] text-slate-500 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1.5 mb-1.5">
           <input type="url" id="form-book-pdf" placeholder="Atau masukkan Link PDF eksternal..." class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500">
+  
+          <!-- Kotak Progress Bar (Default Disembunyikan) -->
+          <div id="upload-progress-container" class="hidden space-y-1.5 pt-2">
+            <div class="flex justify-between text-[10px] font-extrabold text-slate-500">
+              <span id="upload-status-text">Mengunggah PDF...</span>
+              <span id="upload-percentage">0%</span>
+            </div>
+            <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden shadow-inner">
+              <div id="upload-progress-bar" class="bg-emerald-600 h-full w-0 transition-all duration-150"></div>
+            </div>
+            <div class="flex justify-between text-[9px] text-slate-400 font-medium">
+              <span id="upload-speed">0 KB/s</span>
+              <span id="upload-sizes">0 MB / 0 MB</span>
+            </div>
+          </div>
         </div>
+
         <div class="flex justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
           <button type="button" onclick="closeAddBookModal()" class="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">Batal</button>
           <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md shadow-emerald-500/20 transition-all">Simpan Buku</button>
@@ -1520,58 +1536,106 @@
     }
 
     window.saveBookEntry = async function(e) {
-      e.preventDefault();
+  e.preventDefault();
+  
+  const bookId = document.getElementById('form-book-id').value;
+  const title = document.getElementById('form-book-title').value.trim();
+  const author = document.getElementById('form-book-author').value.trim();
+  const category = document.getElementById('form-book-category').value;
+  const description = document.getElementById('form-book-desc').value.trim();
+  const urlCover = document.getElementById('form-book-cover-url').value.trim();
+  const rawContent = document.getElementById('form-book-content').value.trim();
+
+  let pdfUrl = document.getElementById('form-book-pdf').value.trim();
+  const pdfFileInput = document.getElementById('form-book-pdf-file');
+
+  const progressContainer = document.getElementById('upload-progress-container');
+  const progressBar = document.getElementById('upload-progress-bar');
+  const progressPercentage = document.getElementById('upload-percentage');
+  const speedText = document.getElementById('upload-speed');
+  const sizesText = document.getElementById('upload-sizes');
+
+  try {
+    // Jika admin mengunggah file PDF baru
+    if (pdfFileInput && pdfFileInput.files[0]) {
+      const pdfFile = pdfFileInput.files[0];
+      progressContainer.classList.remove('hidden'); // Tampilkan progress bar
+
+      const { ref, uploadBytesResumable, getDownloadURL } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js");
+      const storageRef = ref(storage, `pdfs/${Date.now()}_${pdfFile.name}`);
       
-      const bookId = document.getElementById('form-book-id').value;
-      const title = document.getElementById('form-book-title').value.trim();
-      const author = document.getElementById('form-book-author').value.trim();
-      const category = document.getElementById('form-book-category').value;
-      const description = document.getElementById('form-book-desc').value.trim();
-      const urlCover = document.getElementById('form-book-cover-url').value.trim();
-      const rawContent = document.getElementById('form-book-content').value.trim();
+      const uploadTask = uploadBytesResumable(storageRef, pdfFile);
+      let startTime = Date.now();
 
-      let pdfUrl = document.getElementById('form-book-pdf').value.trim();
-      const pdfFileInput = document.getElementById('form-book-pdf-file');
+      // Jalankan proses async dengan janji (Promise) untuk melacak progress
+      pdfUrl = await new Promise((resolve, reject) => {
+        uploadTask.on('state_changed', 
+          (snapshot) => {
+            // Hitung persentase
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            const transferredMB = (snapshot.bytesTransferred / (1024 * 1024)).toFixed(2);
+            const totalMB = (snapshot.totalBytes / (1024 * 1024)).toFixed(2);
+            
+            // Hitung kecepatan upload (KB/s atau MB/s)
+            const elapsedTime = (Date.now() - startTime) / 1000; // detik
+            const speed = elapsedTime > 0 ? (snapshot.bytesTransferred / elapsedTime) : 0; 
+            let speedFormatted = '';
+            if (speed > 1024 * 1024) {
+              speedFormatted = (speed / (1024 * 1024)).toFixed(1) + ' MB/s';
+            } else {
+              speedFormatted = (speed / 1024).toFixed(1) + ' KB/s';
+            }
 
-      try {
-        if (pdfFileInput && pdfFileInput.files[0]) {
-          const pdfFile = pdfFileInput.files[0];
-          showToast('Mengunggah file PDF ke Cloud...');
-          
-          const storageRef = ref(storage, `pdfs/${Date.now()}_${pdfFile.name}`);
-          const snapshot = await uploadBytes(storageRef, pdfFile);
-          pdfUrl = await getDownloadURL(snapshot.ref);
-        }
-
-        const pages = rawContent ? rawContent.split('||').map(p => p.trim()) : ["Halaman 1..."];
-
-        let finalCover = tempCoverBase64 || urlCover;
-        if(!finalCover && bookId) {
-          const existingBook = books.find(b => b.id === bookId);
-          if(existingBook) finalCover = existingBook.cover;
-        }
-        if(!finalCover) finalCover = 'https://placehold.co/400x600/10b981/ffffff?text=Book';
-
-        const bookData = { title, author, category, description, cover: finalCover, pages, pdfUrl };
-
-        if(bookId) {
-          const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-          await setDoc(doc(db, "books", bookId), bookData, { merge: true });
-          showToast('Data & PDF buku berhasil diperbarui!');
-          closeAddBookModal();
-          await loadAllDataFromFirestore();
-          if(selectedBookId === bookId) openBookDetail(bookId);
-        } else {
-          await addDoc(collection(db, "books"), bookData);
-          showToast('Buku baru & file PDF berhasil disimpan!');
-          closeAddBookModal();
-          await loadAllDataFromFirestore();
-        }
-      } catch(err) {
-        console.error(err);
-        showToast('Gagal mengunggah file PDF atau menyimpan buku.');
-      }
+            // Update UI Progress Bar
+            progressBar.style.width = progress + '%';
+            progressPercentage.textContent = Math.round(progress) + '%';
+            sizesText.textContent = `${transferredMB} MB / ${totalMB} MB`;
+            speedText.textContent = speedFormatted;
+          }, 
+          (error) => {
+            progressContainer.classList.add('hidden');
+            reject(error);
+          }, 
+          async () => {
+            // Jika berhasil selesai diunggah
+            const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            progressContainer.classList.add('hidden');
+            resolve(downloadUrl);
+          }
+        );
+      });
     }
+
+    const pages = rawContent ? rawContent.split('||').map(p => p.trim()) : ["Halaman 1..."];
+
+    let finalCover = tempCoverBase64 || urlCover;
+    if(!finalCover && bookId) {
+      const existingBook = books.find(b => b.id === bookId);
+      if(existingBook) finalCover = existingBook.cover;
+    }
+    if(!finalCover) finalCover = 'https://placehold.co/400x600/10b981/ffffff?text=Book';
+
+    const bookData = { title, author, category, description, cover: finalCover, pages, pdfUrl };
+
+    if(bookId) {
+      const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+      await setDoc(doc(db, "books", bookId), bookData, { merge: true });
+      showToast('Data & PDF buku berhasil diperbarui!');
+      closeAddBookModal();
+      await loadAllDataFromFirestore();
+      if(selectedBookId === bookId) openBookDetail(bookId);
+    } else {
+      await addDoc(collection(db, "books"), bookData);
+      showToast('Buku baru & file PDF berhasil disimpan!');
+      closeAddBookModal();
+      await loadAllDataFromFirestore();
+    }
+  } catch(err) {
+    console.error(err);
+    if(progressContainer) progressContainer.classList.add('hidden');
+    showToast('Gagal mengunggah file PDF atau menyimpan buku.');
+  }
+}
 
     window.deleteBook = async function(id) {
       if(confirm('Hapus buku ini dari database cloud?')) {
