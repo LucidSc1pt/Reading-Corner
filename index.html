@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Pojok Baca Digital X-1</title>
   <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Phosphor Icons -->
@@ -36,6 +36,13 @@
       }
     }
   </script>
+    <!-- PDF.js Library (Mozilla) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+      // Set worker PDF.js secara global
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+
   <style>
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.4); border-radius: 9999px; }
@@ -246,9 +253,14 @@
         <div id="reader-pagination-footer" class="pt-6 mt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-4 items-center justify-between">
           <div class="text-xs font-bold text-slate-500">Halaman <span id="reader-curr-page">1</span> dari <span id="reader-total-page">1</span></div>
           <div class="flex items-center gap-2 w-full sm:w-auto">
-            <button id="reader-prev-btn" onclick="turnReaderPage(-1)" class="flex-1 sm:flex-none px-5 py-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold hover:bg-slate-200 disabled:opacity-30 transition-all">&larr; Sebelumnya</button>
-            <button id="reader-next-btn" onclick="turnReaderPage(1)" class="flex-1 sm:flex-none px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 disabled:opacity-30 shadow-md shadow-emerald-500/20 transition-all">Selanjutnya &rarr;</button>
+            <button id="reader-prev-btn" onclick="prevReaderPage()" class="flex-1 sm:flex-none px-5 py-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold hover:bg-slate-200 disabled:opacity-30 transition-all">&larr; Sebelumnya</button>
+            <button id="reader-next-btn" onclick="nextReaderPage()" class="flex-1 sm:flex-none px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 disabled:opacity-30 shadow-md shadow-emerald-500/20 transition-all">Selanjutnya &rarr;</button>
           </div>
+            <!-- Tombol Kontrol Zoom Tambahan di Reader -->
+            <div class="flex justify-center items-center gap-3 my-2">
+              <button onclick="zoomOutPdf()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white text-xs rounded-lg shadow font-bold">🔍 - Zoom</button>
+              <button onclick="zoomInPdf()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white text-xs rounded-lg shadow font-bold">🔍 + Zoom</button>
+            </div>
         </div>
       </div>
     </section>
@@ -517,6 +529,10 @@
 
   <!-- FIREBASE & MAIN APP SCRIPT -->
   <script type="module">
+    let pdfDoc = null;
+    let pdfPageNum = 1;
+    let isRenderingPdf = false;
+
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, addDoc, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getStorage, ref, uploadBytesResumable, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
@@ -677,6 +693,73 @@
         document.getElementById('visitor-count-badge').textContent = "1";
       }
     }
+
+let pdfZoomLevel = 1.5; // Default pembesaran 1.5x lebih besar dari ukuran asli
+
+async function renderPdfPage(num) {
+  if (!pdfDoc) return;
+  isRenderingPdf = true;
+
+  const canvas = document.getElementById('pdf-render-canvas');
+  if (!canvas) return;
+  
+  const ctx = canvas.getContext('2d');
+  const page = await pdfDoc.getPage(num);
+
+  const container = document.getElementById('reader-pdf-container');
+  const containerWidth = container ? container.clientWidth - 16 : window.innerWidth - 32;
+  
+  const unscaledViewport = page.getViewport({ scale: 1.0 });
+  
+  // Skala dasar disesuaikan lebar layar, lalu dikalikan dengan pdfZoomLevel agar teksnya besar & terbaca jelas
+  const baseScale = containerWidth / unscaledViewport.width;
+  const scale = baseScale * pdfZoomLevel;
+  const viewport = page.getViewport({ scale: scale });
+
+  // Dukungan High-DPI (Retina/Mobile) agar teks tidak pecah/blur saat diperbesar
+  const dpr = window.devicePixelRatio || 1;
+  // Atur ukuran pixel internal canvas sesuai skala PDF.js
+    canvas.height = viewport.height * dpr;
+    canvas.width = viewport.width * dpr;
+
+    // Batasi ukuran tampilannya di layar agar tetap rapi dan tidak melar
+    canvas.style.width = '100%';
+    canvas.style.height = 'auto';
+    canvas.style.maxWidth = `${viewport.width}px`;
+
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.scale(dpr, dpr);
+
+  const renderContext = {
+    canvasContext: ctx,
+    viewport: viewport
+  };
+
+  await page.render(renderContext).promise;
+  isRenderingPdf = false;
+
+  // Perbarui indikator halaman
+  document.getElementById('reader-curr-page').textContent = num;
+  document.getElementById('reader-total-page').textContent = pdfDoc.numPages;
+}
+
+// Tambahkan Fungsi Tombol Zoom In & Zoom Out
+window.zoomInPdf = function() {
+  if (!pdfDoc) return;
+  if (pdfZoomLevel < 3.0) {
+    pdfZoomLevel += 0.25;
+    renderPdfPage(pdfPageNum);
+  }
+};
+
+window.zoomOutPdf = function() {
+  if (!pdfDoc) return;
+  if (pdfZoomLevel > 0.75) {
+    pdfZoomLevel -= 0.25;
+    renderPdfPage(pdfPageNum);
+  }
+};
 
     onAuthStateChanged(auth, async (user) => {
       currentUser = user;
@@ -1423,44 +1506,90 @@
       navigateTo('reader');
     }
 
-    function renderReaderContent() {
-      const book = books.find(b => b.id === selectedBookId);
-      if(!book) return;
+async function renderReaderContent() {
+  const book = books.find(b => b.id === selectedBookId);
+  if (!book) return;
 
-      const textCanvas = document.getElementById('reader-body-text');
-      const pdfContainer = document.getElementById('reader-pdf-container');
-      const paginationControls = document.getElementById('reader-pagination-footer');
+  const canvasContainer = document.getElementById('reader-canvas');
+  const textCanvas = document.getElementById('reader-body-text');
+  const paginationControls = document.getElementById('reader-pagination-footer');
 
-      if (book.pdfUrl) {
-        textCanvas.classList.add('hidden');
-        if(paginationControls) paginationControls.classList.add('hidden');
-        
-        if(!pdfContainer) {
-          const canvas = document.getElementById('reader-canvas');
-          const div = document.createElement('div');
-          div.id = 'reader-pdf-container';
-          div.className = 'w-full h-[70vh] flex flex-col';
-          div.innerHTML = `<iframe src="${book.pdfUrl}#toolbar=0" class="w-full h-full rounded-2xl border shadow-inner"></iframe>`;
-          canvas.prepend(div);
-        } else {
-          pdfContainer.classList.remove('hidden');
-          pdfContainer.querySelector('iframe').src = book.pdfUrl + '#toolbar=0';
-        }
-      } else {
-        if(pdfContainer) pdfContainer.classList.add('hidden');
-        textCanvas.classList.remove('hidden');
-        if(paginationControls) paginationControls.classList.remove('hidden');
+  // Pastikan kontrol tombol halaman di footer SELALU TAMPIL
+  if (paginationControls) paginationControls.classList.remove('hidden');
 
-        const pages = book.pages || [`Halaman 1: ${book.description}`];
-        document.getElementById('reader-curr-page').textContent = readerCurrentPage + 1;
-        document.getElementById('reader-total-page').textContent = pages.length;
-        
-        textCanvas.innerHTML = pages[readerCurrentPage];
-        document.getElementById('reader-prev-btn').disabled = readerCurrentPage === 0;
-        document.getElementById('reader-next-btn').disabled = readerCurrentPage === pages.length - 1;
-      }
+  if (book.pdfUrl) {
+    if (textCanvas) textCanvas.classList.add('hidden');
+
+    let pdfContainer = document.getElementById('reader-pdf-container');
+    if (!pdfContainer) {
+      pdfContainer = document.createElement('div');
+      pdfContainer.id = 'reader-pdf-container';
+      pdfContainer.className = 'w-full flex justify-center items-center overflow-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-900/50 p-4 min-h-[65vh]';
+        canvasContainer.prepend(pdfContainer);
+    } else {
+      pdfContainer.classList.remove('hidden');
     }
 
+    pdfContainer.innerHTML = `<canvas id="pdf-render-canvas" class="rounded-xl shadow-lg object-contain max-h-[75vh]"></canvas>`;
+
+    try {
+      showToast('Memuat dokumen PDF...');
+      pdfPageNum = 1; // Mulai dari halaman 1
+      pdfDoc = await pdfjsLib.getDocument(book.pdfUrl).promise;
+      await renderPdfPage(pdfPageNum);
+    } catch (err) {
+      console.error(err);
+      pdfContainer.innerHTML = `<p class="text-rose-500 text-xs text-center p-4">Gagal memuat halaman PDF.</p>`;
+    }
+
+  } else {
+    // Jalur jika buku berupa teks manual biasa
+    let pdfContainer = document.getElementById('reader-pdf-container');
+    if (pdfContainer) pdfContainer.classList.add('hidden');
+    if (textCanvas) textCanvas.classList.remove('hidden');
+
+    const pages = book.pages || [`Halaman 1: ${book.description}`];
+    document.getElementById('reader-curr-page').textContent = readerCurrentPage + 1;
+    document.getElementById('reader-total-page').textContent = pages.length;
+    textCanvas.innerHTML = pages[readerCurrentPage];
+  }
+}
+
+window.nextReaderPage = function() {
+  const book = books.find(b => b.id === selectedBookId);
+  if (!book) return;
+
+  if (book.pdfUrl && pdfDoc) {
+    if (pdfPageNum >= pdfDoc.numPages || isRenderingPdf) return;
+    pdfPageNum++;
+    renderPdfPage(pdfPageNum);
+  } else {
+    // Logika halaman teks biasa
+    if (readerCurrentPage < book.pages.length - 1) {
+      readerCurrentPage++;
+      renderReaderContent();
+    }
+  }
+};
+
+// Fungsi Tombol Halaman Sebelumnya
+window.prevReaderPage = function() {
+  const book = books.find(b => b.id === selectedBookId);
+  if (!book) return;
+
+  if (book.pdfUrl && pdfDoc) {
+    if (pdfPageNum <= 1 || isRenderingPdf) return;
+    pdfPageNum--;
+    renderPdfPage(pdfPageNum);
+  } else {
+    // Logika halaman teks biasa
+    if (readerCurrentPage > 0) {
+      readerCurrentPage--;
+      renderReaderContent();
+    }
+  }
+};
+      
     window.turnReaderPage = function(delta) {
       const book = books.find(b => b.id === selectedBookId);
       const pages = book.pages || [1];
