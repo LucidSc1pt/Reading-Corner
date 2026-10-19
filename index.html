@@ -10,15 +10,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script>
-      // Cek tema tersimpan atau preferensi sistem sebelum halaman dirender
-      if (localStorage.getItem('x1_theme') === 'dark' || (!('x1_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    </script>
-
+  <script>
+    if (localStorage.getItem('x1_theme') === 'dark' || (!('x1_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -27,6 +25,11 @@
           fontFamily: {
             sans: ['"Plus Jakarta Sans"', 'sans-serif'],
             serif: ['Merriweather', 'serif'],
+          },
+          boxShadow: {
+            'card': '0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 0 1px 1px rgba(0, 0, 0, 0.05)',
+            'card-hover': '0 20px 40px -10px rgba(16, 185, 129, 0.15), 0 0 2px 1px rgba(16, 185, 129, 0.1)',
+            'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.08)'
           }
         }
       }
@@ -36,135 +39,143 @@
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.4); border-radius: 9999px; }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
+    
+    /* Animasi Halus Transisi Halaman */
+    .page-view {
+      animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans min-h-full flex flex-col transition-colors duration-300">
 
   <!-- TOP HEADER / NAVBAR -->
-  <header class="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shrink-0">
+  <header class="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80 shrink-0 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
       <div class="flex justify-between h-16 items-center">
-        <div onclick="navigateTo('katalog')" class="flex items-center gap-3 cursor-pointer">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+        <div onclick="navigateTo('katalog')" class="flex items-center gap-3 cursor-pointer group">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30 group-hover:scale-105 transition-transform duration-300">
             <i class="ph-bold ph-book-bookmark text-xl"></i>
           </div>
           <div>
             <span class="font-extrabold text-base sm:text-lg bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-600">Pojok Baca X-1</span>
-            <span class="block text-[10px] sm:text-xs text-slate-500 font-medium">Cloud Database Connected</span>
+            <span class="block text-[10px] sm:text-xs text-slate-400 font-medium">Cloud Database Connected</span>
           </div>
         </div>
 
-        <nav class="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-slate-800/60 p-1.5 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
-          <button onclick="navigateTo('katalog')" id="nav-desk-katalog" class="nav-desk-btn px-4 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-700 text-emerald-600 shadow-sm">Katalog Buku</button>
-          <button onclick="navigateTo('jurnal')" id="nav-desk-jurnal" class="nav-desk-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400">Jurnal Baca</button>
-          <button onclick="navigateTo('leaderboard')" id="nav-desk-leaderboard" class="nav-desk-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400">Peringkat Pembaca</button>
-          <button onclick="navigateTo('request')" id="nav-desk-request" class="nav-desk-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400">Usul Buku</button>
+        <nav class="hidden md:flex items-center gap-1 bg-slate-100/80 dark:bg-slate-800/60 p-1.5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-inner">
+          <button onclick="navigateTo('katalog')" id="nav-desk-katalog" class="nav-desk-btn px-4 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-slate-700 text-emerald-600 shadow-sm transition-all">Katalog Buku</button>
+          <button onclick="navigateTo('jurnal')" id="nav-desk-jurnal" class="nav-desk-btn px-4 py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 transition-all hover:text-slate-900">Jurnal Baca</button>
+          <button onclick="navigateTo('leaderboard')" id="nav-desk-leaderboard" class="nav-desk-btn px-4 py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 transition-all hover:text-slate-900">Peringkat Pembaca</button>
+          <button onclick="navigateTo('request')" id="nav-desk-request" class="nav-desk-btn px-4 py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 transition-all hover:text-slate-900">Usul Buku</button>
         </nav>
 
-        <div class="flex items-center gap-2">
-          <!-- Indikator Pengunjung Online (Menggantikan Tombol PIN Admin) -->
-          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-            <i class="ph-bold ph-users text-emerald-500"></i>
+        <div class="flex items-center gap-2.5">
+          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-900/50 shadow-sm text-slate-600 dark:text-slate-300">
+            <i class="ph-bold ph-users text-emerald-500 animate-pulse"></i>
             <span>Online: <span id="visitor-count-badge" class="font-bold">...</span></span>
           </div>
 
-          <button onclick="toggleDarkMode()" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300">
+          <button onclick="toggleDarkMode()" class="p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-all shadow-sm">
             <i class="ph-bold ph-moon text-base dark:hidden"></i>
             <i class="ph-bold ph-sun text-base hidden dark:block"></i>
           </button>
-            <!-- Tombol Navigasi Profil Desktop -->
-            <button id="nav-desk-profile" onclick="navigateTo('profile')" class="nav-desk-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 flex items-center gap-1.5">
-                <i class="ph-bold ph-user-circle text-base"></i> Profil
-            </button>
+          <button id="nav-desk-profile" onclick="navigateTo('profile')" class="nav-desk-btn px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1.5 transition-all border border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-900/50 shadow-sm">
+            <i class="ph-bold ph-user-circle text-base text-emerald-500"></i> Profil
+          </button>
         </div>
       </div>
     </div>
   </header>
 
   <!-- MAIN CONTAINER -->
-  <div class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 pb-20 md:pb-8">
+  <div class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-6 pb-24 md:pb-12">
 
     <!-- VIEW: KATALOG -->
     <main id="view-katalog" class="page-view space-y-6">
-      <div class="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white p-5 sm:p-8 shadow-lg">
-        <div class="relative z-10 space-y-2 max-w-2xl">
-          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-[11px] font-bold backdrop-blur-md">
-            <i class="ph-bold ph-sparkle text-amber-300"></i> Online
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white p-6 sm:p-10 shadow-xl shadow-emerald-600/20">
+        <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="relative z-10 space-y-3 max-w-2xl">
+          <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/20 text-[11px] font-bold backdrop-blur-md shadow-sm">
+            <i class="ph-bold ph-sparkle text-amber-300"></i> Cloud Synced
           </span>
-          <h1 class="text-xl sm:text-3xl font-extrabold tracking-tight">Perpustakaan Digital Kelas X-1</h1>
-          <p class="text-emerald-100 text-xs sm:text-sm">Semua buku, ulasan, dan komentar tersinkronisasi online untuk seluruh siswa atau orang yang mengakses website ini.</p>
+          <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight">Perpustakaan Digital Kelas X-1</h1>
+          <p class="text-emerald-100 text-xs sm:text-sm leading-relaxed">Semua buku, ulasan, dan komentar tersinkronisasi online secara real-time untuk seluruh siswa dan pengunjung.</p>
         </div>
       </div>
 
-      <div class="space-y-3">
-        <div class="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between">
+      <div class="space-y-4">
+        <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
           <div class="relative flex-1">
-            <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-            <input type="text" id="search-input" onkeyup="renderBooks()" placeholder="Cari judul buku atau penulis..." class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm">
+            <i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base"></i>
+            <input type="text" id="search-input" onkeyup="renderBooks()" placeholder="Cari judul buku atau penulis..." class="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-card transition-all">
           </div>
           <div class="flex items-center gap-2 overflow-x-auto pb-1 shrink-0">
-            <button id="admin-add-btn" onclick="openAddBookModal()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-md">
-              <i class="ph-bold ph-plus-circle"></i> Tambah Buku
+            <button id="admin-add-btn" onclick="openAddBookModal()" class="hidden bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg shadow-emerald-500/25 transition-all hover:scale-[1.02]">
+              <i class="ph-bold ph-plus-circle text-base"></i> Tambah Buku
             </button>
-            <button id="filter-fav-btn" onclick="toggleFavoriteFilter()" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5">
-              <i class="ph-fill ph-star text-amber-400"></i> Favorit
+            <button id="filter-fav-btn" onclick="toggleFavoriteFilter()" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 px-4 py-3 rounded-2xl text-xs sm:text-sm font-semibold flex items-center gap-2 shadow-card hover:border-amber-400 transition-all">
+              <i class="ph-fill ph-star text-amber-400 text-base"></i> Favorit
             </button>
           </div>
         </div>
-        <div class="flex items-center gap-2 overflow-x-auto pb-1 hide-scrollbar" id="category-chips"></div>
+        <div class="flex items-center gap-2 overflow-x-auto pb-2 hide-scrollbar" id="category-chips"></div>
       </div>
 
-      <div id="books-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-5"></div>
-      <div id="empty-katalog" class="hidden text-center py-12 space-y-2">
-        <div class="w-12 h-12 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded-full flex items-center justify-center mx-auto text-xl">
+      <div id="books-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6"></div>
+      <div id="empty-katalog" class="hidden text-center py-16 space-y-3">
+        <div class="w-16 h-16 bg-slate-100 dark:bg-slate-900 text-slate-400 rounded-3xl flex items-center justify-center mx-auto text-2xl shadow-inner border border-slate-200 dark:border-slate-800">
           <i class="ph-bold ph-books"></i>
         </div>
-        <p class="font-semibold text-sm text-slate-600 dark:text-slate-400">Buku tidak ditemukan</p>
+        <p class="font-bold text-sm text-slate-600 dark:text-slate-400">Buku tidak ditemukan</p>
       </div>
     </main>
 
     <!-- VIEW: DETAIL BUKU -->
     <section id="view-detail" class="page-view hidden space-y-6">
       <div class="flex items-center justify-between">
-        <button onclick="navigateTo('katalog')" class="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600">
-          <i class="ph-bold ph-arrow-left"></i> Kembali ke Katalog
+        <button onclick="navigateTo('katalog')" class="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition-colors">
+          <i class="ph-bold ph-arrow-left text-base"></i> Kembali ke Katalog
         </button>
-        <button id="detail-fav-btn" onclick="toggleBookmark(selectedBookId)" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-amber-400">
+        <button id="detail-fav-btn" onclick="toggleBookmark(selectedBookId)" class="p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 hover:text-amber-400 shadow-card transition-all">
           <i class="ph-bold ph-star text-lg" id="detail-fav-icon"></i>
         </button>
       </div>
 
-      <div class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 shadow-sm">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-          <div class="flex flex-col items-center gap-3">
-            <img id="detail-cover" class="w-40 sm:w-56 h-56 sm:h-80 object-cover rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800" src="" alt="Cover">
-            <div class="flex flex-col items-center justify-center p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 shrink-0 w-full">
-              <span class="text-[10px] font-bold text-slate-400 mb-1">QR Code Buku</span>
-              <img id="detail-qrcode" src="" class="w-24 h-24 rounded-lg bg-white p-1 border shadow-sm" alt="QR Buku">
-              <span class="text-[9px] text-slate-400 mt-1">Scan untuk bagikan</span>
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-8 shadow-card">
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-8 items-start">
+          <div class="flex flex-col items-center gap-4">
+            <img id="detail-cover" class="w-44 sm:w-60 h-64 sm:h-84 object-cover rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800" src="" alt="Cover">
+            <div class="flex flex-col items-center justify-center p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 shrink-0 w-full shadow-inner">
+              <span class="text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">QR Code Buku</span>
+              <img id="detail-qrcode" src="" class="w-24 h-24 rounded-xl bg-white p-1.5 border shadow-sm" alt="QR Buku">
+              <span class="text-[10px] text-slate-400 mt-1.5 font-medium">Scan untuk bagikan</span>
             </div>
           </div>
-          <div class="md:col-span-2 space-y-4">
-            <div class="space-y-1 text-center md:text-left">
-              <span id="detail-category" class="inline-block px-3 py-1 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded-lg text-xs font-bold">Kategori</span>
-              <h1 id="detail-title" class="text-xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">Judul Buku</h1>
-              <p id="detail-author" class="text-sm sm:text-base text-emerald-600 dark:text-emerald-400 font-semibold">Penulis</p>
+          <div class="md:col-span-2 space-y-5">
+            <div class="space-y-2 text-center md:text-left">
+              <span id="detail-category" class="inline-block px-3.5 py-1 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded-xl text-xs font-extrabold shadow-sm">Kategori</span>
+              <h1 id="detail-title" class="text-s sm:text-4xl font-extrabold text-slate-900 dark:text-white">Judul Buku</h1>
+              <p id="detail-author" class="text-s sm:text-base text-emerald-600 dark:text-emerald-400 font-bold">Penulis</p>
             </div>
 
-            <div class="grid grid-cols-3 gap-2 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border text-center text-xs">
-              <div><span class="text-slate-400 block text-[10px]">Rating</span><span id="detail-rating-num" class="font-bold text-amber-500">★ 4.8</span></div>
-              <div><span class="text-slate-400 block text-[10px]">Halaman</span><span id="detail-pages-count" class="font-bold">120</span></div>
-              <div><span class="text-slate-400 block text-[10px]">Akses</span><span class="font-bold text-emerald-600">X-1 Cloud</span></div>
+            <div class="grid grid-cols-3 gap-1 p-2 max-w-80 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/80 dark:border-slate-800 text-center text-xs shadow-inner">
+              <div><span class="text-slate-400 block text-[5px] uppercase font-bold">Rating</span><span id="detail-rating-num" class="font-extrabold text-amber-500 text-[10px]">★ 4.8</span></div>
+              <div><span class="text-slate-400 block text-[5px] uppercase font-bold">Halaman</span><span id="detail-pages-count" class="font-extrabold text-[10px]">120</span></div>
+              <div><span class="text-slate-400 block text-[5px] uppercase font-bold">Akses</span><span class="font-extrabold text-emerald-600 text-[10px]">X-1 Cloud</span></div>
             </div>
 
             <div class="flex flex-wrap gap-3 pt-2">
-              <button onclick="openReaderPage()" class="flex-1 sm:flex-none px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold rounded-xl shadow-lg flex items-center justify-center gap-2">
+              <button onclick="openReaderPage()" class="flex-1 sm:flex-none px-6 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs sm:text-sm font-bold rounded-2xl shadow-xl shadow-emerald-500/25 flex items-center justify-center gap-2.5 transition-all hover:scale-[1.02]">
                 <i class="ph-bold ph-book-open text-lg"></i> Mulai Membaca Penuh
               </button>
             </div>
 
-            <div class="space-y-1.5 pt-2">
-              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Deskripsi & Sinopsis</h3>
+            <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Deskripsi & Sinopsis</h3>
               <p id="detail-description" class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed"></p>
             </div>
           </div>
@@ -172,15 +183,15 @@
       </div>
 
       <!-- ULASAN & RATING -->
-      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 space-y-5">
-        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <i class="ph-bold ph-star text-amber-500"></i> Penilaian & Ulasan (Dapat Diedit)
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-8 space-y-5 shadow-card">
+        <h3 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2.5">
+          <i class="ph-bold ph-star text-amber-500 text-xl"></i> Penilaian & Ulasan
         </h3>
-        <form onsubmit="submitReview(event)" class="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border space-y-3">
+        <form onsubmit="submitReview(event)" class="bg-slate-50 dark:bg-slate-800/40 p-4.5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3.5 shadow-inner">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">Bintang Rating (1-5)</label>
-              <select id="review-rating" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border rounded-lg text-xs">
+              <label class="block text-[11px] font-extrabold text-slate-600 dark:text-slate-400 mb-1">Bintang Rating (1-5)</label>
+              <select id="review-rating" class="w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold shadow-sm focus:ring-2 focus:ring-emerald-500">
                 <option value="5">★★★★★ - Sempurna</option>
                 <option value="4">★★★★☆ - Bagus</option>
                 <option value="3">★★★☆☆ - Lumayan</option>
@@ -189,25 +200,25 @@
               </select>
             </div>
           </div>
-          <textarea id="review-text" rows="2" required placeholder="Tulis ulasan jujur kamu..." class="w-full px-3 py-2 bg-white dark:bg-slate-800 border rounded-lg text-xs"></textarea>
+          <textarea id="review-text" rows="2.5" required placeholder="Tulis ulasan jujur kamu..." class="w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs shadow-sm focus:ring-2 focus:ring-emerald-500"></textarea>
           <div class="flex justify-end">
-            <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg text-xs shadow-md">Kirim / Update Ulasan</button>
+            <button type="submit" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs shadow-md shadow-amber-500/20 transition-all hover:scale-[1.02]">Kirim / Update Ulasan</button>
           </div>
         </form>
         <div id="reviews-list" class="space-y-3"></div>
       </div>
 
       <!-- DISKUSI & KOMENTAR -->
-      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 space-y-5">
-        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <i class="ph-bold ph-chats-teardrop text-emerald-500"></i> Diskusi Kelas (Cooldown 10s & Balas Komentar)
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-8 space-y-5 shadow-card">
+        <h3 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2.5">
+          <i class="ph-bold ph-chats-teardrop text-emerald-500 text-xl"></i> Diskusi Kelas (Cooldown 10s)
         </h3>
         <div id="comments-list" class="space-y-4"></div>
-        <form onsubmit="submitComment(event)" class="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border space-y-3">
-          <textarea id="comment-text" rows="2" required placeholder="Tulis komentar atau pertanyaan..." class="w-full px-3 py-2 bg-white dark:bg-slate-800 border rounded-lg text-xs"></textarea>
+        <form onsubmit="submitComment(event)" class="bg-slate-50 dark:bg-slate-800/40 p-4.5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3.5 shadow-inner">
+          <textarea id="comment-text" rows="2.5" required placeholder="Tulis komentar atau pertanyaan..." class="w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs shadow-sm focus:ring-2 focus:ring-emerald-500"></textarea>
           <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
             <span id="comment-cooldown-notice" class="text-[11px] font-bold text-rose-500"></span>
-            <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs shadow-md">Kirim Komentar</button>
+            <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md shadow-emerald-500/20 transition-all hover:scale-[1.02]">Kirim Komentar</button>
           </div>
         </form>
       </div>
@@ -215,135 +226,132 @@
 
     <!-- VIEW: READER -->
     <section id="view-reader" class="page-view hidden space-y-4">
-      <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-2xl border shadow-sm shrink-0">
-        <button onclick="navigateTo('detail')" class="text-xs sm:text-sm font-bold text-slate-600 hover:text-emerald-600 flex items-center gap-1">
-          <i class="ph-bold ph-x"></i> Keluar
+      <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-card shrink-0">
+        <button onclick="navigateTo('detail')" class="text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 flex items-center gap-1.5 transition-colors">
+          <i class="ph-bold ph-x text-base"></i> Keluar Reader
         </button>
-        <div class="flex items-center gap-2">
-          <div class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 border">
-            <button onclick="adjustFontSize(-2)" class="px-2 py-1 text-xs font-bold">A-</button>
-            <button onclick="adjustFontSize(2)" class="px-2 py-1 text-xs font-bold">A+</button>
+        <div class="flex items-center gap-2.5">
+          <div class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-1 border border-slate-200 dark:border-slate-700">
+            <button onclick="adjustFontSize(-2)" class="px-2.5 py-1 text-xs font-bold hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all">A-</button>
+            <button onclick="adjustFontSize(2)" class="px-2.5 py-1 text-xs font-bold hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all">A+</button>
           </div>
-          <button onclick="setReaderTheme('light')" class="w-6 h-6 rounded-full bg-white border-2 border-slate-300"></button>
-          <button onclick="setReaderTheme('sepia')" class="w-6 h-6 rounded-full bg-[#fbf0d9] border-2 border-amber-300"></button>
-          <button onclick="setReaderTheme('dark')" class="w-6 h-6 rounded-full bg-slate-950 border-2 border-slate-700"></button>
+          <button onclick="setReaderTheme('light')" class="w-6 h-6 rounded-full bg-white border-2 border-slate-300 shadow-sm"></button>
+          <button onclick="setReaderTheme('sepia')" class="w-6 h-6 rounded-full bg-[#fbf0d9] border-2 border-amber-300 shadow-sm"></button>
+          <button onclick="setReaderTheme('dark')" class="w-6 h-6 rounded-full bg-slate-950 border-2 border-slate-700 shadow-sm"></button>
         </div>
       </div>
-      <div id="reader-canvas" class="bg-white text-slate-800 rounded-2xl p-5 sm:p-10 border shadow-md min-h-[60vh] flex flex-col justify-between transition-all">
-        <div id="reader-body-text" class="font-serif leading-relaxed space-y-4 text-base sm:text-lg"></div>
-        <div id="reader-pagination-footer" class="pt-6 mt-6 border-t flex flex-col sm:flex-row gap-3 items-center justify-between">
-          <div class="text-xs font-semibold text-slate-500">Halaman <span id="reader-curr-page">1</span> dari <span id="reader-total-page">1</span></div>
+      <div id="reader-canvas" class="bg-white text-slate-800 rounded-3xl p-6 sm:p-12 border border-slate-200 dark:border-slate-800 shadow-xl min-h-[65vh] flex flex-col justify-between transition-all">
+        <div id="reader-body-text" class="font-serif leading-relaxed space-y-5 text-base sm:text-lg"></div>
+        <div id="reader-pagination-footer" class="pt-6 mt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <div class="text-xs font-bold text-slate-500">Halaman <span id="reader-curr-page">1</span> dari <span id="reader-total-page">1</span></div>
           <div class="flex items-center gap-2 w-full sm:w-auto">
-            <button id="reader-prev-btn" onclick="turnReaderPage(-1)" class="flex-1 sm:flex-none px-4 py-2 bg-slate-200 dark:bg-slate-800 rounded-xl text-xs font-bold disabled:opacity-30">&larr; Sebelumnya</button>
-            <button id="reader-next-btn" onclick="turnReaderPage(1)" class="flex-1 sm:flex-none px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold disabled:opacity-30">Selanjutnya &rarr;</button>
+            <button id="reader-prev-btn" onclick="turnReaderPage(-1)" class="flex-1 sm:flex-none px-5 py-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold hover:bg-slate-200 disabled:opacity-30 transition-all">&larr; Sebelumnya</button>
+            <button id="reader-next-btn" onclick="turnReaderPage(1)" class="flex-1 sm:flex-none px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 disabled:opacity-30 shadow-md shadow-emerald-500/20 transition-all">Selanjutnya &rarr;</button>
           </div>
         </div>
       </div>
     </section>
 
     <!-- VIEW: JURNAL -->
-    <section id="view-jurnal" class="page-view hidden space-y-4">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white dark:bg-slate-900 p-5 rounded-2xl border shadow-sm">
+    <section id="view-jurnal" class="page-view hidden space-y-5">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-card">
         <div>
-          <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="ph-bold ph-journal text-emerald-500"></i> Jurnal Membaca X-1</h2>
-          <p class="text-xs text-slate-500">Catatan buku yang selesai dibaca siswa.</p>
+          <h2 class="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2.5"><i class="ph-bold ph-journal text-emerald-500 text-xl"></i> Jurnal Membaca X-1</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Catatan buku yang selesai dibaca siswa kelas.</p>
         </div>
-        <button onclick="openJournalForm()" class="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-md"><i class="ph-bold ph-plus"></i> Tulis Jurnal</button>
+        <button onclick="openJournalForm()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-2xl shadow-lg shadow-emerald-500/20 flex items-center gap-2 transition-all hover:scale-[1.02]"><i class="ph-bold ph-plus text-sm"></i> Tulis Jurnal</button>
       </div>
-      <form id="journal-form" onsubmit="saveJournalEntry(event)" class="hidden bg-white dark:bg-slate-900 p-4 rounded-2xl border space-y-3">
+      <form id="journal-form" onsubmit="saveJournalEntry(event)" class="hidden bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-4 shadow-card">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <select id="j-book" class="px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-xs"></select>
+          <select id="j-book" class="px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-emerald-500"></select>
         </div>
-        <textarea id="j-notes" rows="3" required placeholder="Rangkuman / kesan buku..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-xs"></textarea>
-        <div class="flex justify-end gap-2">
-          <button type="button" onclick="openJournalForm()" class="px-3 py-1.5 border rounded-lg text-xs">Batal</button>
-          <button type="submit" class="px-4 py-1.5 bg-emerald-600 text-white font-bold rounded-lg text-xs">Simpan</button>
+        <textarea id="j-notes" rows="3" required placeholder="Rangkuman / kesan buku..." class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500"></textarea>
+        <div class="flex justify-end gap-2.5 pt-1">
+          <button type="button" onclick="openJournalForm()" class="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">Batal</button>
+          <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md shadow-emerald-500/20 transition-all">Simpan Jurnal</button>
         </div>
       </form>
-      <div id="journal-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+      <div id="journal-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
     </section>
 
     <!-- VIEW: LEADERBOARD -->
     <section id="view-leaderboard" class="page-view hidden space-y-4">
-      <div class="bg-white dark:bg-slate-900 rounded-2xl border p-5 shadow-sm max-w-xl mx-auto space-y-4">
-        <div class="text-center space-y-1">
-          <div class="w-12 h-12 bg-amber-100 text-amber-600 dark:bg-amber-950 rounded-2xl flex items-center justify-center mx-auto text-2xl"><i class="ph-bold ph-trophy"></i></div>
-          <h2 class="text-lg font-extrabold">Peringkat Pembaca Teraktif</h2>
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-card max-w-xl mx-auto space-y-5">
+        <div class="text-center space-y-2">
+          <div class="w-14 h-14 bg-amber-100 text-amber-600 dark:bg-amber-950/60 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner border border-amber-200 dark:border-amber-900/40"><i class="ph-bold ph-trophy"></i></div>
+          <h2 class="text-xl font-extrabold text-slate-900 dark:text-white">Peringkat Pembaca Teraktif</h2>
           <p class="text-xs text-slate-500">Berdasarkan jurnal terbanyak di kelas X-1</p>
         </div>
-        <div id="leaderboard-list" class="space-y-2"></div>
+        <div id="leaderboard-list" class="space-y-2.5"></div>
       </div>
     </section>
 
     <!-- VIEW: REQUEST -->
     <section id="view-request" class="page-view hidden space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <form onsubmit="submitRequest(event)" class="bg-white dark:bg-slate-900 p-4 rounded-2xl border space-y-3">
-          <h3 class="text-sm font-bold flex items-center gap-2"><i class="ph-bold ph-paper-plane-tilt text-emerald-500"></i> Usul Buku Baru</h3>
-          <input type="text" id="req-title" required placeholder="Judul Buku" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-xs">
-          <textarea id="req-reason" rows="3" required placeholder="Alasan usulan..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-xs"></textarea>
-          <button type="submit" class="w-full py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">Kirim Usulan</button>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <form onsubmit="submitRequest(event)" class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-4 shadow-card h-fit">
+          <h3 class="text-sm font-extrabold flex items-center gap-2 text-slate-900 dark:text-white"><i class="ph-bold ph-paper-plane-tilt text-emerald-500 text-lg"></i> Usul Buku Baru</h3>
+          <input type="text" id="req-title" required placeholder="Judul Buku" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs shadow-sm focus:ring-2 focus:ring-emerald-500">
+          <textarea id="req-reason" rows="3" required placeholder="Alasan usulan..." class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs shadow-sm focus:ring-2 focus:ring-emerald-500"></textarea>
+          <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-lg shadow-emerald-500/20 transition-all hover:scale-[1.01]">Kirim Usulan</button>
         </form>
-        <div class="md:col-span-2 bg-white dark:bg-slate-900 p-4 rounded-2xl border space-y-3">
-          <h3 class="text-sm font-bold">Daftar Usulan Buku Teman-Teman</h3>
-          <div id="request-list" class="space-y-2 max-h-[400px] overflow-y-auto"></div>
+        <div class="md:col-span-2 bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-4 shadow-card">
+          <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">Daftar Usulan Buku Teman-Teman</h3>
+          <div id="request-list" class="space-y-3 max-h-[420px] overflow-y-auto pr-1"></div>
         </div>
       </div>
     </section>
 
     <!-- VIEW: PROFIL USER -->
     <section id="view-profile" class="page-view hidden space-y-6 max-w-2xl mx-auto">
-      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-6">
-        <div class="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-card space-y-6">
+        <div class="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
           <div class="relative">
-            <img id="profile-avatar-img" src="https://placehold.co/150x150/10b981/ffffff?text=User" class="w-24 h-24 rounded-full object-cover border-4 border-emerald-500 shadow-md">
-            <!-- Badge Admin Universal di Profil -->
-            <span id="profile-admin-badge" class="hidden absolute bottom-0 right-0 bg-amber-500 text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full shadow">ADMIN</span>
+            <img id="profile-avatar-img" src="https://placehold.co/150x150/10b981/ffffff?text=User" class="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-emerald-500 shadow-xl">
+            <span id="profile-admin-badge" class="hidden absolute bottom-1 right-1 bg-amber-500 text-white text-[10px] font-extrabold px-3 py-1 rounded-full shadow-lg">ADMIN</span>
           </div>
-          <div class="space-y-1">
-            <div class="flex items-center gap-2 justify-center sm:justify-start">
-              <h2 id="profile-display-name" class="text-xl font-extrabold text-slate-900 dark:text-white">Nama Pengguna</h2>
-            </div>
+          <div class="space-y-1.5">
+            <h2 id="profile-display-name" class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">Nama Pengguna</h2>
             <p id="profile-email-text" class="text-xs text-slate-500 font-semibold">email@sekolah.com</p>
             <p id="profile-bio-text" class="text-xs text-slate-600 dark:text-slate-300 italic pt-1"></p>
           </div>
         </div>
 
-        <button id="open-login-profile" onclick="openUserAuthModal()" class="w-full py-2.5 px-4 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all">
+        <button id="open-login-profile" onclick="openUserAuthModal()" class="w-full py-3 px-4 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm">
           Login untuk mengakses lebih banyak fitur
         </button>
 
         <!-- SECTION DASBOR LAPORAN ADMIN -->
-        <div id="admin-reports-section" class="hidden bg-rose-50 dark:bg-rose-950/30 rounded-3xl border border-rose-200 dark:border-rose-900/50 p-5 space-y-3">
-          <div class="flex justify-between items-center border-b border-rose-200 dark:border-rose-900/50 pb-2">
+        <div id="admin-reports-section" class="hidden bg-rose-50/80 dark:bg-rose-950/30 rounded-3xl border border-rose-200 dark:border-rose-900/50 p-5 space-y-3 shadow-inner">
+          <div class="flex justify-between items-center border-b border-rose-200 dark:border-rose-900/50 pb-2.5">
             <div class="flex items-center gap-2">
-              <i class="ph-bold ph-warning-circle text-rose-500 text-lg"></i>
+              <i class="ph-bold ph-warning-circle text-rose-500 text-xl"></i>
               <h3 class="font-extrabold text-rose-950 dark:text-rose-200 text-xs sm:text-sm">Laporan Masuk dari Siswa</h3>
             </div>
-            <span id="reports-count-badge" class="bg-rose-500 text-white font-bold text-[10px] px-2 py-0.5 rounded-full">0</span>
+            <span id="reports-count-badge" class="bg-rose-500 text-white font-extrabold text-[10px] px-2.5 py-0.5 rounded-full shadow-sm">0</span>
           </div>
-          <div id="reports-list-container" class="space-y-2 max-h-60 overflow-y-auto"></div>
+          <div id="reports-list-container" class="space-y-2.5 max-h-60 overflow-y-auto"></div>
         </div>
 
         <!-- Form Edit Profil -->
-        <form id="edit-profile-form" onsubmit="saveUserProfile(event)" class="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border space-y-3 text-xs">
-          <h3 class="font-bold text-slate-700 dark:text-slate-300">Edit Informasi Profil</h3>
+        <form id="edit-profile-form" onsubmit="saveUserProfile(event)" class="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3.5 text-xs shadow-inner">
+          <h3 class="font-extrabold text-slate-800 dark:text-slate-200 text-sm">Edit Informasi Profil</h3>
           <div>
-            <label class="block font-semibold mb-1">Nama Tampilan (Siswa X-1) *</label>
-            <input type="text" id="edit-display-name" required class="w-full px-3 py-2 bg-white dark:bg-slate-800 border rounded-xl">
+            <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">Nama Tampilan (Siswa X-1) *</label>
+            <input type="text" id="edit-display-name" required class="w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500">
           </div>
           <div>
-            <label class="block font-semibold mb-1">Foto Profil (URL / Upload)</label>
-            <input type="url" id="edit-avatar-url" placeholder="https://..." class="w-full px-3 py-2 bg-white dark:bg-slate-800 border rounded-xl mb-1">
-            <input type="file" accept="image/*" onchange="handleAvatarUpload(event)" class="w-full text-[10px]">
+            <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">Foto Profil (URL / Upload)</label>
+            <input type="url" id="edit-avatar-url" placeholder="https://..." class="w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm mb-1.5 focus:ring-2 focus:ring-emerald-500">
+            <input type="file" accept="image/*" onchange="handleAvatarUpload(event)" class="w-full text-[10px] text-slate-500">
           </div>
           <div>
-            <label class="block font-semibold mb-1">Bio Singkat</label>
-            <textarea id="edit-bio" rows="2" placeholder="Tuliskan kata mutiara atau hobi membacamu..." class="w-full px-3 py-2 bg-white dark:bg-slate-800 border rounded-xl"></textarea>
+            <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">Bio Singkat</label>
+            <textarea id="edit-bio" rows="2" placeholder="Tuliskan kata mutiara atau hobi membacamu..." class="w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500"></textarea>
           </div>
-          <div class="flex justify-between items-center pt-2">
-            <button type="button" onclick="handleUserLogout()" class="px-4 py-2 bg-rose-100 dark:bg-rose-950/60 text-rose-600 font-bold rounded-xl hover:bg-rose-200">Keluar (Logout)</button>
-            <button type="submit" class="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl shadow-md">Simpan Perubahan</button>
+          <div class="flex justify-between items-center pt-3">
+            <button type="button" onclick="handleUserLogout()" class="px-4 py-2.5 bg-rose-100 dark:bg-rose-950/60 text-rose-600 font-bold rounded-xl hover:bg-rose-200 transition-all">Keluar (Logout)</button>
+            <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all hover:scale-[1.02]">Simpan Perubahan</button>
           </div>
         </form>
       </div>
@@ -352,36 +360,36 @@
   </div>
 
   <!-- MOBILE BOTTOM NAV -->
-  <div class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t px-2 py-1.5">
+  <div class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 px-2 py-2 shadow-lg">
     <div class="grid grid-cols-4 gap-1 text-center">
-      <button onclick="navigateTo('katalog')" id="nav-mob-katalog" class="nav-mob-btn py-1 text-emerald-400 flex flex-col items-center"><i class="ph-bold ph-squares-four text-lg"></i><span class="text-[10px] font-bold">Katalog</span></button>
-      <button onclick="navigateTo('jurnal')" id="nav-mob-jurnal" class="nav-mob-btn py-1 text-slate-400 flex flex-col items-center"><i class="ph-bold ph-book text-lg"></i><span class="text-[10px] font-bold">Jurnal</span></button>
-      <button onclick="navigateTo('leaderboard')" id="nav-mob-leaderboard" class="nav-mob-btn py-1 text-slate-400 flex flex-col items-center"><i class="ph-bold ph-trophy text-lg"></i><span class="text-[10px] font-bold">Peringkat</span></button>
-      <button onclick="navigateTo('request')" id="nav-mob-request" class="nav-mob-btn py-1 text-slate-400 flex flex-col items-center"><i class="ph-bold ph-paper-plane-tilt text-lg"></i><span class="text-[10px] font-bold">Usul</span></button>
+      <button onclick="navigateTo('katalog')" id="nav-mob-katalog" class="nav-mob-btn py-1 text-emerald-600 flex flex-col items-center transition-all"><i class="ph-bold ph-squares-four text-xl"></i><span class="text-[10px] font-extrabold mt-0.5">Katalog</span></button>
+      <button onclick="navigateTo('jurnal')" id="nav-mob-jurnal" class="nav-mob-btn py-1 text-slate-400 flex flex-col items-center transition-all"><i class="ph-bold ph-book text-xl"></i><span class="text-[10px] font-extrabold mt-0.5">Jurnal</span></button>
+      <button onclick="navigateTo('leaderboard')" id="nav-mob-leaderboard" class="nav-mob-btn py-1 text-slate-400 flex flex-col items-center transition-all"><i class="ph-bold ph-trophy text-xl"></i><span class="text-[10px] font-extrabold mt-0.5">Peringkat</span></button>
+      <button onclick="navigateTo('request')" id="nav-mob-request" class="nav-mob-btn py-1 text-slate-400 flex flex-col items-center transition-all"><i class="ph-bold ph-paper-plane-tilt text-xl"></i><span class="text-[10px] font-extrabold mt-0.5">Usul</span></button>
     </div>
   </div>
 
   <!-- MODAL ADD / EDIT BOOK -->
   <div id="add-book-modal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl p-5 border my-auto space-y-3 text-xs">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-sm" id="modal-book-title-header">Tambah Buku Baru</h3>
-        <button onclick="closeAddBookModal()"><i class="ph-bold ph-x text-base"></i></button>
+    <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl p-6 border border-slate-200 dark:border-slate-800 my-auto space-y-4 shadow-2xl text-xs animate-in fade-in zoom-in-95 duration-200">
+      <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
+        <h3 class="font-extrabold text-sm text-slate-900 dark:text-white" id="modal-book-title-header">Tambah Buku Baru</h3>
+        <button onclick="closeAddBookModal()" class="p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400"><i class="ph-bold ph-x text-base"></i></button>
       </div>
-      <form onsubmit="saveBookEntry(event)" class="space-y-2.5">
+      <form onsubmit="saveBookEntry(event)" class="space-y-3">
         <input type="hidden" id="form-book-id">
         <div>
-          <label class="block font-semibold mb-1">Judul Buku *</label>
-          <input type="text" id="form-book-title" required class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg">
+          <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">Judul Buku *</label>
+          <input type="text" id="form-book-title" required class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500">
         </div>
-        <div class="grid grid-cols-2 gap-2">
+        <div class="grid grid-cols-2 gap-2.5">
           <div>
-            <label class="block font-semibold mb-1">Penulis *</label>
-            <input type="text" id="form-book-author" required class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg">
+            <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">Penulis *</label>
+            <input type="text" id="form-book-author" required class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500">
           </div>
           <div>
-            <label class="block font-semibold mb-1">Kategori *</label>
-            <select id="form-book-category" class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg">
+            <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">Kategori *</label>
+            <select id="form-book-category" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm font-semibold focus:ring-2 focus:ring-emerald-500">
               <option value="Fiksi">Fiksi</option>
               <option value="Non-Fiksi">Non-Fiksi</option>
               <option value="Sains & Teknologi">Sains & Teknologi</option>
@@ -391,25 +399,26 @@
           </div>
         </div>
         <div>
-          <label class="block font-semibold mb-1">Sinopsis *</label>
-          <textarea id="form-book-desc" rows="3" required class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg"></textarea>
+          <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">Sinopsis *</label>
+          <textarea id="form-book-desc" rows="3" required class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500"></textarea>
         </div>
         <div>
-          <label class="block font-semibold mb-1">Cover URL / Upload File</label>
-          <input type="url" id="form-book-cover-url" placeholder="https://..." class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg mb-1">
-          <input type="file" accept="image/*" onchange="handleCoverFile(event)" class="w-full text-[10px]">
+          <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">Cover URL / Upload File</label>
+          <input type="url" id="form-book-cover-url" placeholder="https://..." class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm mb-1.5 focus:ring-2 focus:ring-emerald-500">
+          <input type="file" accept="image/*" onchange="handleCoverFile(event)" class="w-full text-[10px] text-slate-500">
         </div>
         <div>
-          <label class="block font-semibold mb-1">Konten Halaman Teks (Pisahkan dengan ||)</label>
-          <textarea id="form-book-content" rows="3" placeholder="Hal 1... || Hal 2..." class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg"></textarea>
+          <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">Konten Halaman Teks (Pisahkan dengan ||)</label>
+          <textarea id="form-book-content" rows="2.5" placeholder="Hal 1... || Hal 2..." class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500"></textarea>
         </div>
         <div>
-          <label class="block font-semibold mb-1">Link File PDF (Opsional - Gantikan Teks)</label>
-          <input type="url" id="form-book-pdf" placeholder="https://.../buku.pdf" class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg">
+          <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">File PDF Buku (Upload Langsung)</label>
+          <input type="file" id="form-book-pdf-file" accept="application/pdf" class="w-full text-[10px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1.5 mb-1.5 text-slate-500">
+          <input type="url" id="form-book-pdf" placeholder="Atau masukkan Link PDF eksternal..." class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500">
         </div>
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="closeAddBookModal()" class="px-3 py-1.5 border rounded-lg">Batal</button>
-          <button type="submit" class="px-4 py-1.5 bg-emerald-600 text-white font-bold rounded-lg">Simpan Buku</button>
+        <div class="flex justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <button type="button" onclick="closeAddBookModal()" class="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">Batal</button>
+          <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md shadow-emerald-500/20 transition-all">Simpan Buku</button>
         </div>
       </form>
     </div>
@@ -417,27 +426,27 @@
 
   <!-- WIDGET PEMUTAR MUSIK LO-FI -->
   <div id="music-widget" class="fixed bottom-20 right-4 z-40 transition-all duration-300">
-    <button id="music-widget-minimized" onclick="toggleMusicWidgetMinimize()" class="flex items-center gap-2 bg-slate-900/90 text-white backdrop-blur-md border border-slate-700/80 px-3 py-2 rounded-full shadow-2xl hover:scale-105 transition-all">
+    <button id="music-widget-minimized" onclick="toggleMusicWidgetMinimize()" class="flex items-center gap-2.5 bg-slate-900/90 text-white backdrop-blur-xl border border-slate-700/80 px-4 py-2.5 rounded-full shadow-2xl hover:scale-105 transition-all">
       <div class="relative flex items-center justify-center">
         <i class="ph-bold ph-vinyl-record text-base text-emerald-400" id="mini-vinyl-icon"></i>
         <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 hidden" id="mini-status-pulse"></span>
       </div>
-      <span class="text-[10px] font-bold tracking-wide truncate max-w-[90px]" id="mini-track-title">Musik</span>
+      <span class="text-[11px] font-bold tracking-wide truncate max-w-[100px]" id="mini-track-title">Musik</span>
       <i class="ph-bold ph-caret-up text-xs text-slate-400"></i>
     </button>
 
-    <div id="music-widget-full" class="hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-3.5 w-72 space-y-3">
-      <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+    <div id="music-widget-full" class="hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl p-4 w-72 space-y-3.5 animate-in fade-in zoom-in-95 duration-200">
+      <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-800">
         <div class="flex items-center gap-2">
           <div class="w-2 h-2 rounded-full bg-slate-300" id="full-status-indicator"></div>
           <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Suasana Baca</span>
         </div>
         <button onclick="toggleMusicWidgetMinimize()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1">
-          <i class="ph-bold ph-caret-down"></i>
+          <i class="ph-bold ph-caret-down text-sm"></i>
         </button>
       </div>
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center text-white shrink-0 shadow-md">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center text-white shrink-0 shadow-md">
           <i class="ph-bold ph-vinyl-record text-xl" id="album-art-icon"></i>
         </div>
         <div class="overflow-hidden flex-1">
@@ -446,15 +455,15 @@
         </div>
       </div>
       <div class="flex items-center justify-center gap-3">
-        <button onclick="playPrevTrack()" class="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><i class="ph-bold ph-skip-back text-sm"></i></button>
-        <button id="main-play-btn" onclick="togglePlayMusic()" class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md hover:bg-emerald-700 transition-all">
+        <button onclick="playPrevTrack()" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"><i class="ph-bold ph-skip-back text-base"></i></button>
+        <button id="main-play-btn" onclick="togglePlayMusic()" class="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/25 hover:bg-emerald-700 transition-all hover:scale-105">
           <i class="ph-bold ph-play text-base" id="main-play-icon"></i>
         </button>
-        <button onclick="playNextTrack()" class="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><i class="ph-bold ph-skip-forward text-sm"></i></button>
+        <button onclick="playNextTrack()" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"><i class="ph-bold ph-skip-forward text-base"></i></button>
       </div>
       <div class="space-y-1">
-        <label class="text-[9px] font-extrabold text-slate-400 block tracking-wider">PILIH SUASANA:</label>
-        <select id="playlist-select" onchange="changeTrack(this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none"></select>
+        <label class="text-[9px] font-extrabold text-slate-400 block tracking-wider uppercase">Pilih Suasana:</label>
+        <select id="playlist-select" onchange="changeTrack(this.value)" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none shadow-sm"></select>
       </div>
     </div>
     <audio id="bg-music-player" loop></audio>
@@ -462,37 +471,38 @@
 
   <!-- MODAL AUTHENTICATION -->
   <div id="user-auth-modal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 border border-slate-200 dark:border-slate-800 space-y-4 shadow-2xl relative">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-7 border border-slate-200 dark:border-slate-800 space-y-4 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
       <button onclick="closeUserAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="ph-bold ph-x text-lg"></i></button>
-      <div class="text-center space-y-1">
-        <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto text-2xl"><i class="ph-bold ph-user-circle"></i></div>
+      <div class="text-center space-y-2">
+        <div class="w-14 h-14 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner border border-emerald-200 dark:border-emerald-900/40"><i class="ph-bold ph-user-circle"></i></div>
         <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">Masuk ke Pojok Baca</h3>
         <p class="text-xs text-slate-500">Login untuk dapat berkomentar, beri ulasan, dan isi jurnal.</p>
       </div>
-      <button onclick="loginWithGoogle()" class="w-full py-2.5 px-4 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all">
+      <button onclick="loginWithGoogle()" class="w-full py-3 px-4 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold flex items-center justify-center gap-2.5 transition-all shadow-sm">
         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4" alt="Google">
         Lanjutkan dengan Google
       </button>
       <div class="relative flex py-1 items-center">
         <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
-        <span class="flex-shrink mx-2 text-[10px] text-slate-400 uppercase font-bold">atau Email</span>
+        <span class="flex-shrink mx-2 text-[10px] text-slate-400 uppercase font-extrabold tracking-wider">atau Email</span>
         <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
       </div>
       <form onsubmit="handleEmailAuth(event)" class="space-y-3">
-        <input type="email" id="auth-email" required placeholder="Email Sekolah / Pribadi" class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-xs">
-        <input type="password" id="auth-password" required placeholder="Kata Sandi" class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-xs">
-        <button type="submit" id="auth-submit-btn" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md">Masuk / Daftar</button>
+        <input type="email" id="auth-email" required placeholder="Email Sekolah / Pribadi" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs shadow-sm focus:ring-2 focus:ring-emerald-500">
+        <input type="password" id="auth-password" required placeholder="Kata Sandi" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs shadow-sm focus:ring-2 focus:ring-emerald-500">
+        <button type="submit" id="auth-submit-btn" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-lg shadow-emerald-500/20 transition-all">Masuk / Daftar</button>
       </form>
     </div>
   </div>
 
   <!-- TOAST -->
-  <div id="toast" class="fixed bottom-16 md:bottom-6 right-4 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-xs transition-all duration-300 translate-y-20 opacity-0 pointer-events-none"><i class="ph-bold ph-check-circle text-emerald-400"></i><span id="toast-msg">Info</span></div>
+  <div id="toast" class="fixed bottom-20 md:bottom-6 right-4 z-50 bg-slate-900 text-white px-4.5 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs transition-all duration-300 translate-y-20 opacity-0 pointer-events-none border border-slate-800"><i class="ph-bold ph-check-circle text-emerald-400 text-base"></i><span id="toast-msg">Info</span></div>
 
   <!-- FIREBASE & MAIN APP SCRIPT -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, addDoc, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
     import { 
       getAuth, 
       signInWithPopup, 
@@ -503,7 +513,7 @@
       onAuthStateChanged,
       updateProfile
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
+    
     const firebaseConfig = {
       apiKey: "AIzaSyBkXyoiU1EAgNLvuAAv2Zi5b5ek1_Lo-q8",
       authDomain: "reading-corner-x-1.firebaseapp.com",
@@ -516,6 +526,7 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const storage = getStorage(app);
     
     const auth = getAuth(app);
     const googleProvider = new GoogleAuthProvider();
@@ -645,7 +656,6 @@
       }
     }
 
-    // AUTHENTICATION & SESSION STATE LISTENER
     onAuthStateChanged(auth, async (user) => {
       currentUser = user;
       isAdmin = false;
@@ -1036,10 +1046,10 @@
       }
 
       document.querySelectorAll('.nav-desk-btn').forEach(btn => {
-        btn.className = "nav-desk-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900";
+        btn.className = "nav-desk-btn px-4 py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all";
       });
       const deskActive = document.getElementById(`nav-desk-${pageView}`);
-      if(deskActive) deskActive.className = "nav-desk-btn px-4 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm";
+      if(deskActive) deskActive.className = "nav-desk-btn px-4 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm transition-all";
 
       document.querySelectorAll('.nav-mob-btn').forEach(btn => {
         btn.classList.remove('text-emerald-600');
@@ -1101,7 +1111,7 @@
 
     function renderCategoryChips() {
       document.getElementById('category-chips').innerHTML = categories.map(cat => `
-        <button onclick="setCategory('${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all ${selectedCategory === cat ? 'bg-emerald-600 text-white shadow-md' : 'bg-white dark:bg-slate-900 border'}">
+        <button onclick="setCategory('${cat}')" class="px-4 py-2 rounded-2xl text-xs font-bold shrink-0 transition-all shadow-sm ${selectedCategory === cat ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/25 scale-105' : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-500'}">
           ${cat}
         </button>
       `).join('');
@@ -1135,32 +1145,32 @@
         if(bookRev.length > 0) avg = (bookRev.reduce((acc, r) => acc + parseInt(r.rating), 0) / bookRev.length).toFixed(1);
 
         return `
-          <div class="group relative bg-white dark:bg-slate-900 rounded-2xl border overflow-hidden flex flex-col justify-between hover:shadow-lg transition-all">
+          <div class="group relative bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col justify-between shadow-card hover:shadow-card-hover hover:-translate-y-1.5 transition-all duration-300">
             <div class="cursor-pointer" onclick="openBookDetail('${b.id}')">
-              <div class="relative h-44 sm:h-56 bg-slate-100 overflow-hidden">
-                <img src="${b.cover}" alt="${b.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                <span class="absolute top-2 left-2 px-2 py-0.5 bg-slate-900/80 text-white text-[9px] font-bold rounded-md">${b.category}</span>
-                <button onclick="event.stopPropagation(); toggleBookmark('${b.id}')" class="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 dark:bg-slate-900/80 text-slate-400">
+              <div class="relative h-48 sm:h-60 bg-slate-100 overflow-hidden">
+                <img src="${b.cover}" alt="${b.title}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                <span class="absolute top-2.5 left-2.5 px-2.5 py-1 bg-slate-900/80 backdrop-blur-md text-white text-[9px] font-bold rounded-lg shadow-sm">${b.category}</span>
+                <button onclick="event.stopPropagation(); toggleBookmark('${b.id}')" class="absolute top-2.5 right-2.5 p-2 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md text-slate-400 hover:text-amber-400 shadow-sm transition-all">
                   <i class="${isFav ? 'ph-fill ph-star text-amber-400' : 'ph-bold ph-star'} text-xs"></i>
                 </button>
               </div>
-              <div class="p-3 space-y-1">
-                <h3 class="font-bold text-xs sm:text-sm line-clamp-1">${b.title}</h3>
-                <p class="text-[11px] text-slate-500 line-clamp-1">${b.author}</p>
+              <div class="p-3.5 space-y-1">
+                <h3 class="font-extrabold text-xs sm:text-sm line-clamp-1 text-slate-900 dark:text-white">${b.title}</h3>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 font-medium">${b.author}</p>
               </div>
             </div>
-            <div class="p-3 pt-0 flex items-center justify-between border-t mt-1 text-xs">
-              <span class="font-bold text-amber-500">★ ${avg}</span>
+            <div class="p-3.5 pt-0 flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 mt-1 text-xs">
+              <span class="font-extrabold text-amber-500 flex items-center gap-1">★ ${avg}</span>
               <div class="flex items-center gap-1">
                 ${isAdmin ? `
-                  <button onclick="event.stopPropagation(); openEditBookModal('${b.id}')" class="p-1 text-slate-400 hover:text-amber-500" title="Edit Buku">
+                  <button onclick="event.stopPropagation(); openEditBookModal('${b.id}')" class="p-1.5 text-slate-400 hover:text-amber-500 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all" title="Edit Buku">
                     <i class="ph-bold ph-pencil-simple text-xs"></i>
                   </button>
-                  <button onclick="event.stopPropagation(); deleteBook('${b.id}')" class="p-1 text-slate-400 hover:text-rose-500" title="Hapus Buku">
+                  <button onclick="event.stopPropagation(); deleteBook('${b.id}')" class="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all" title="Hapus Buku">
                     <i class="ph-bold ph-trash text-xs"></i>
                   </button>
                 ` : ''}
-                <button onclick="openBookDetail('${b.id}')" class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950 text-emerald-600 font-bold text-[10px] rounded-lg">Detail</button>
+                <button onclick="openBookDetail('${b.id}')" class="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 font-bold text-[10px] rounded-xl hover:bg-emerald-100 transition-all">Detail</button>
               </div>
             </div>
           </div>
@@ -1293,7 +1303,7 @@
       container.innerHTML = bookRev.map(r => {
         const isOwnerOrAdmin = isAdmin || (currentUser && currentUser.uid === r.userId);
         return `
-          <div class="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 text-xs space-y-1">
+          <div class="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs space-y-1.5 shadow-sm">
             <div class="flex justify-between items-center font-bold">
               <span class="text-emerald-600 dark:text-emerald-400">${r.name}</span>
               <div class="flex items-center gap-2">
@@ -1305,7 +1315,7 @@
                 ` : ''}
               </div>
             </div>
-            <p class="text-slate-600 dark:text-slate-300">${r.text}</p>
+            <p class="text-slate-600 dark:text-slate-300 leading-relaxed">${r.text}</p>
           </div>
         `;
       }).join('');
@@ -1362,12 +1372,12 @@
       container.innerHTML = bookCom.map(c => {
         const isOwnerOrAdmin = isAdmin || (currentUser && currentUser.uid === c.userId);
         return `
-          <div class="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 text-xs space-y-2">
+          <div class="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs space-y-2 shadow-sm">
             <div class="flex justify-between items-center font-bold">
               <span class="text-emerald-600 dark:text-emerald-400">${c.name}</span>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2.5">
                 <span class="text-[10px] text-slate-400 font-normal">${c.date}</span>
-                <button onclick="reportItem('comment', '${c.id}', '${c.text.substring(0, 30)}...')" class="text-[10px] text-slate-400 hover:text-rose-500 font-semibold" title="Laporkan Komentar">
+                <button onclick="reportItem('comment', '${c.id}', '${c.text.substring(0, 30)}...')" class="text-[10px] text-slate-400 hover:text-rose-500 font-semibold transition-colors" title="Laporkan Komentar">
                     <i class="ph-bold ph-warning text-xs"></i> Laporkan
                 </button>
                 ${isOwnerOrAdmin ? `
@@ -1377,7 +1387,7 @@
                 ` : ''}
               </div>
             </div>
-            <p class="text-slate-600 dark:text-slate-300">${c.text}</p>
+            <p class="text-slate-600 dark:text-slate-300 leading-relaxed">${c.text}</p>
           </div>
         `;
       }).join('');
@@ -1408,7 +1418,7 @@
           const div = document.createElement('div');
           div.id = 'reader-pdf-container';
           div.className = 'w-full h-[70vh] flex flex-col';
-          div.innerHTML = `<iframe src="${book.pdfUrl}#toolbar=0" class="w-full h-full rounded-xl border shadow-inner"></iframe>`;
+          div.innerHTML = `<iframe src="${book.pdfUrl}#toolbar=0" class="w-full h-full rounded-2xl border shadow-inner"></iframe>`;
           canvas.prepend(div);
         } else {
           pdfContainer.classList.remove('hidden');
@@ -1450,11 +1460,11 @@
       const c = document.getElementById('reader-canvas');
       if(!c) return;
       if (theme === 'sepia') {
-        c.className = "bg-[#fbf0d9] text-amber-950 rounded-2xl p-5 sm:p-10 border border-amber-200 shadow-md min-h-[60vh] flex flex-col justify-between transition-all";
+        c.className = "bg-[#fbf0d9] text-amber-950 rounded-3xl p-6 sm:p-12 border border-amber-200 shadow-xl min-h-[65vh] flex flex-col justify-between transition-all";
       } else if (theme === 'dark') {
-        c.className = "bg-slate-950 text-slate-200 rounded-2xl p-5 sm:p-10 border border-slate-800 shadow-md min-h-[60vh] flex flex-col justify-between transition-all";
+        c.className = "bg-slate-950 text-slate-200 rounded-3xl p-6 sm:p-12 border border-slate-800 shadow-xl min-h-[65vh] flex flex-col justify-between transition-all";
       } else {
-        c.className = "bg-white text-slate-800 rounded-2xl p-5 sm:p-10 border border-slate-200 shadow-md min-h-[60vh] flex flex-col justify-between transition-all";
+        c.className = "bg-white text-slate-800 rounded-3xl p-6 sm:p-12 border border-slate-200 shadow-xl min-h-[65vh] flex flex-col justify-between transition-all";
       }
     }
 
@@ -1468,6 +1478,9 @@
       document.getElementById('form-book-cover-url').value = "";
       document.getElementById('form-book-content').value = "";
       document.getElementById('form-book-pdf').value = "";
+      const pdfFileEl = document.getElementById('form-book-pdf-file');
+      if(pdfFileEl) pdfFileEl.value = "";
+        
       tempCoverBase64 = "";
       document.getElementById('add-book-modal').classList.remove('hidden');
     }
@@ -1484,7 +1497,9 @@
       document.getElementById('form-book-desc').value = book.description || "";
       document.getElementById('form-book-cover-url').value = book.cover || "";
       document.getElementById('form-book-pdf').value = book.pdfUrl || "";
-      
+      const pdfFileEl = document.getElementById('form-book-pdf-file');
+      if(pdfFileEl) pdfFileEl.value = "";
+
       const pagesText = book.pages ? book.pages.join(' || ') : "";
       document.getElementById('form-book-content').value = pagesText;
       tempCoverBase64 = "";
@@ -1506,6 +1521,7 @@
 
     window.saveBookEntry = async function(e) {
       e.preventDefault();
+      
       const bookId = document.getElementById('form-book-id').value;
       const title = document.getElementById('form-book-title').value.trim();
       const author = document.getElementById('form-book-author').value.trim();
@@ -1513,36 +1529,47 @@
       const description = document.getElementById('form-book-desc').value.trim();
       const urlCover = document.getElementById('form-book-cover-url').value.trim();
       const rawContent = document.getElementById('form-book-content').value.trim();
-      const pdfUrl = document.getElementById('form-book-pdf').value.trim();
 
-      const pages = rawContent ? rawContent.split('||').map(p => p.trim()) : ["Halaman 1..."];
-
-      let finalCover = tempCoverBase64 || urlCover;
-      if(!finalCover && bookId) {
-        const existingBook = books.find(b => b.id === bookId);
-        if(existingBook) finalCover = existingBook.cover;
-      }
-      if(!finalCover) finalCover = 'https://placehold.co/400x600/10b981/ffffff?text=Book';
-
-      const bookData = { title, author, category, description, cover: finalCover, pages, pdfUrl };
+      let pdfUrl = document.getElementById('form-book-pdf').value.trim();
+      const pdfFileInput = document.getElementById('form-book-pdf-file');
 
       try {
+        if (pdfFileInput && pdfFileInput.files[0]) {
+          const pdfFile = pdfFileInput.files[0];
+          showToast('Mengunggah file PDF ke Cloud...');
+          
+          const storageRef = ref(storage, `pdfs/${Date.now()}_${pdfFile.name}`);
+          const snapshot = await uploadBytes(storageRef, pdfFile);
+          pdfUrl = await getDownloadURL(snapshot.ref);
+        }
+
+        const pages = rawContent ? rawContent.split('||').map(p => p.trim()) : ["Halaman 1..."];
+
+        let finalCover = tempCoverBase64 || urlCover;
+        if(!finalCover && bookId) {
+          const existingBook = books.find(b => b.id === bookId);
+          if(existingBook) finalCover = existingBook.cover;
+        }
+        if(!finalCover) finalCover = 'https://placehold.co/400x600/10b981/ffffff?text=Book';
+
+        const bookData = { title, author, category, description, cover: finalCover, pages, pdfUrl };
+
         if(bookId) {
           const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
           await setDoc(doc(db, "books", bookId), bookData, { merge: true });
-          showToast('Data buku berhasil diperbarui!');
+          showToast('Data & PDF buku berhasil diperbarui!');
           closeAddBookModal();
           await loadAllDataFromFirestore();
           if(selectedBookId === bookId) openBookDetail(bookId);
         } else {
           await addDoc(collection(db, "books"), bookData);
-          showToast('Buku baru berhasil disimpan!');
+          showToast('Buku baru & file PDF berhasil disimpan!');
           closeAddBookModal();
           await loadAllDataFromFirestore();
         }
       } catch(err) {
         console.error(err);
-        showToast('Gagal menyimpan data buku.');
+        showToast('Gagal mengunggah file PDF atau menyimpan buku.');
       }
     }
 
@@ -1625,15 +1652,15 @@
       container.innerHTML = journals.map(j => {
         const canDelete = currentUser && (currentUser.uid === j.userId || isAdmin);
         return `
-          <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border text-xs space-y-1">
+          <div class="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs space-y-1.5 shadow-card">
             <div class="flex justify-between font-bold">
-              <span>${j.book}</span>
-              <div class="flex items-center gap-2">
-                <span class="text-emerald-600">${j.student}</span>
-                ${canDelete ? `<button onclick="deleteJournal('${j.id}', '${j.userId || ''}')" class="text-rose-500 hover:text-rose-700 font-bold" title="Hapus Jurnal"><i class="ph-bold ph-trash"></i></button>` : ''}
+              <span class="text-slate-900 dark:text-white font-extrabold">${j.book}</span>
+              <div class="flex items-center gap-2.5">
+                <span class="text-emerald-600 dark:text-emerald-400">${j.student}</span>
+                ${canDelete ? `<button onclick="deleteJournal('${j.id}', '${j.userId || ''}')" class="text-rose-500 hover:text-rose-700 font-bold" title="Hapus Jurnal"><i class="ph-bold ph-trash text-sm"></i></button>` : ''}
               </div>
             </div>
-            <p class="text-slate-600 dark:text-slate-300 italic">"${j.notes}"</p>
+            <p class="text-slate-600 dark:text-slate-300 italic leading-relaxed">"${j.notes}"</p>
           </div>
         `;
       }).join('');
@@ -1644,9 +1671,12 @@
       journals.forEach(j => { counts[j.student] = (counts[j.student] || 0) + 1; });
       const sorted = Object.keys(counts).map(s => ({ student: s, count: counts[s] })).sort((a,b) => b.count - a.count);
       document.getElementById('leaderboard-list').innerHTML = sorted.map((item, idx) => `
-        <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border text-xs">
-          <div class="flex items-center gap-2"><span class="w-6 h-6 rounded bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center">#${idx+1}</span><span class="font-bold">${item.student}</span></div>
-          <span class="font-bold text-emerald-600">${item.count} Jurnal</span>
+        <div class="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs shadow-sm">
+          <div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 font-extrabold flex items-center justify-center shadow-sm">#${idx+1}</span>
+            <span class="font-extrabold text-slate-900 dark:text-white">${item.student}</span>
+          </div>
+          <span class="font-extrabold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 px-3 py-1 rounded-xl">${item.count} Jurnal</span>
         </div>
       `).join('');
     }
@@ -1713,15 +1743,15 @@
       container.innerHTML = requests.map(r => {
         const canDelete = currentUser && (currentUser.uid === r.userId || isAdmin);
         return `
-          <div class="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border text-xs space-y-1">
+          <div class="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs space-y-1.5 shadow-sm">
             <div class="flex justify-between font-bold">
-              <span>${r.title}</span>
-              <div class="flex items-center gap-2">
-                <span class="text-emerald-600">${r.name}</span>
-                ${canDelete ? `<button onclick="deleteRequest('${r.id}', '${r.userId || ''}')" class="text-rose-500 hover:text-rose-700 font-bold" title="Hapus Usulan"><i class="ph-bold ph-trash"></i></button>` : ''}
+              <span class="text-slate-900 dark:text-white font-extrabold">${r.title}</span>
+              <div class="flex items-center gap-2.5">
+                <span class="text-emerald-600 dark:text-emerald-400">${r.name}</span>
+                ${canDelete ? `<button onclick="deleteRequest('${r.id}', '${r.userId || ''}')" class="text-rose-500 hover:text-rose-700 font-bold" title="Hapus Usulan"><i class="ph-bold ph-trash text-sm"></i></button>` : ''}
               </div>
             </div>
-            <p class="text-slate-500 italic">"${r.reason}"</p>
+            <p class="text-slate-500 italic leading-relaxed">"${r.reason}"</p>
           </div>
         `;
       }).join('');
