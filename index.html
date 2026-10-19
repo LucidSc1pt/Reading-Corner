@@ -1608,6 +1608,7 @@
     }
   } catch(err) {
     console.error(err);
+      alert("⚠️ Gagal Supabase: " + (err.message || JSON.stringify(err)));
     showToast('Gagal mengunggah file PDF atau menyimpan buku.');
   }
 }
