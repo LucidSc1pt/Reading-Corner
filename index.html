@@ -62,10 +62,12 @@
         </nav>
 
         <div class="flex items-center gap-2">
-          <button id="admin-toggle-btn" onclick="openAdminAuth()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-emerald-500">
-            <i class="ph-bold ph-lock-key text-slate-400" id="admin-icon"></i>
-            <span id="admin-btn-text" class="hidden sm:inline">Admin</span>
-          </button>
+          <!-- Indikator Pengunjung Online (Menggantikan Tombol PIN Admin) -->
+          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+            <i class="ph-bold ph-users text-emerald-500"></i>
+            <span>Online: <span id="visitor-count-badge" class="font-bold">...</span></span>
+          </div>
+
           <button onclick="toggleDarkMode()" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300">
             <i class="ph-bold ph-moon text-base dark:hidden"></i>
             <i class="ph-bold ph-sun text-base hidden dark:block"></i>
@@ -134,8 +136,13 @@
 
       <div class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 shadow-sm">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-          <div class="flex flex-col items-center">
+          <div class="flex flex-col items-center gap-3">
             <img id="detail-cover" class="w-40 sm:w-56 h-56 sm:h-80 object-cover rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800" src="" alt="Cover">
+            <div class="flex flex-col items-center justify-center p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 shrink-0 w-full">
+              <span class="text-[10px] font-bold text-slate-400 mb-1">QR Code Buku</span>
+              <img id="detail-qrcode" src="" class="w-24 h-24 rounded-lg bg-white p-1 border shadow-sm" alt="QR Buku">
+              <span class="text-[9px] text-slate-400 mt-1">Scan untuk bagikan</span>
+            </div>
           </div>
           <div class="md:col-span-2 space-y-4">
             <div class="space-y-1 text-center md:text-left">
@@ -195,6 +202,7 @@
         <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
           <i class="ph-bold ph-chats-teardrop text-emerald-500"></i> Diskusi Kelas (Cooldown 10s & Balas Komentar)
         </h3>
+        <div id="comments-list" class="space-y-4"></div>
         <form onsubmit="submitComment(event)" class="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border space-y-3">
           <textarea id="comment-text" rows="2" required placeholder="Tulis komentar atau pertanyaan..." class="w-full px-3 py-2 bg-white dark:bg-slate-800 border rounded-lg text-xs"></textarea>
           <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
@@ -202,7 +210,6 @@
             <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs shadow-md">Kirim Komentar</button>
           </div>
         </form>
-        <div id="comments-list" class="space-y-4"></div>
       </div>
     </section>
 
@@ -224,7 +231,7 @@
       </div>
       <div id="reader-canvas" class="bg-white text-slate-800 rounded-2xl p-5 sm:p-10 border shadow-md min-h-[60vh] flex flex-col justify-between transition-all">
         <div id="reader-body-text" class="font-serif leading-relaxed space-y-4 text-base sm:text-lg"></div>
-        <div class="pt-6 mt-6 border-t flex flex-col sm:flex-row gap-3 items-center justify-between">
+        <div id="reader-pagination-footer" class="pt-6 mt-6 border-t flex flex-col sm:flex-row gap-3 items-center justify-between">
           <div class="text-xs font-semibold text-slate-500">Halaman <span id="reader-curr-page">1</span> dari <span id="reader-total-page">1</span></div>
           <div class="flex items-center gap-2 w-full sm:w-auto">
             <button id="reader-prev-btn" onclick="turnReaderPage(-1)" class="flex-1 sm:flex-none px-4 py-2 bg-slate-200 dark:bg-slate-800 rounded-xl text-xs font-bold disabled:opacity-30">&larr; Sebelumnya</button>
@@ -273,7 +280,6 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <form onsubmit="submitRequest(event)" class="bg-white dark:bg-slate-900 p-4 rounded-2xl border space-y-3">
           <h3 class="text-sm font-bold flex items-center gap-2"><i class="ph-bold ph-paper-plane-tilt text-emerald-500"></i> Usul Buku Baru</h3>
-          <input type="text" id="req-name" required placeholder="Nama Pemohon" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-xs">
           <input type="text" id="req-title" required placeholder="Judul Buku" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-xs">
           <textarea id="req-reason" rows="3" required placeholder="Alasan usulan..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-xs"></textarea>
           <button type="submit" class="w-full py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">Kirim Usulan</button>
@@ -285,13 +291,14 @@
       </div>
     </section>
 
-      <!-- VIEW: PROFIL USER -->
+    <!-- VIEW: PROFIL USER -->
     <section id="view-profile" class="page-view hidden space-y-6 max-w-2xl mx-auto">
       <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-6">
         <div class="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
           <div class="relative">
             <img id="profile-avatar-img" src="https://placehold.co/150x150/10b981/ffffff?text=User" class="w-24 h-24 rounded-full object-cover border-4 border-emerald-500 shadow-md">
-            <span id="profile-admin-badge" class="hidden absolute bottom-0 right-0 bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow">ADMIN</span>
+            <!-- Badge Admin Universal di Profil -->
+            <span id="profile-admin-badge" class="hidden absolute bottom-0 right-0 bg-amber-500 text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full shadow">ADMIN</span>
           </div>
           <div class="space-y-1">
             <div class="flex items-center gap-2 justify-center sm:justify-start">
@@ -302,11 +309,11 @@
           </div>
         </div>
 
-          <button id="open-login-profile" onclick="openUserAuthModal()" class="w-full py-2.5 px-4 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all">
-              Login untuk mengakses lebih banyak fitur
-          </button>
+        <button id="open-login-profile" onclick="openUserAuthModal()" class="w-full py-2.5 px-4 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all">
+          Login untuk mengakses lebih banyak fitur
+        </button>
 
-      <!-- SECTION DASBOR LAPORAN ADMIN (Tampil hanya jika login sebagai Admin) -->
+        <!-- SECTION DASBOR LAPORAN ADMIN -->
         <div id="admin-reports-section" class="hidden bg-rose-50 dark:bg-rose-950/30 rounded-3xl border border-rose-200 dark:border-rose-900/50 p-5 space-y-3">
           <div class="flex justify-between items-center border-b border-rose-200 dark:border-rose-900/50 pb-2">
             <div class="flex items-center gap-2">
@@ -315,11 +322,7 @@
             </div>
             <span id="reports-count-badge" class="bg-rose-500 text-white font-bold text-[10px] px-2 py-0.5 rounded-full">0</span>
           </div>
-
-          <!-- Container Daftar Laporan -->
-          <div id="reports-list-container" class="space-y-2 max-h-60 overflow-y-auto">
-        <!-- Diisi otomatis via JS -->
-          </div>
+          <div id="reports-list-container" class="space-y-2 max-h-60 overflow-y-auto"></div>
         </div>
 
         <!-- Form Edit Profil -->
@@ -350,7 +353,7 @@
 
   <!-- MOBILE BOTTOM NAV -->
   <div class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t px-2 py-1.5">
-    <div class="grid.cols-4 grid grid-cols-4 gap-1 text-center">
+    <div class="grid grid-cols-4 gap-1 text-center">
       <button onclick="navigateTo('katalog')" id="nav-mob-katalog" class="nav-mob-btn py-1 text-emerald-400 flex flex-col items-center"><i class="ph-bold ph-squares-four text-lg"></i><span class="text-[10px] font-bold">Katalog</span></button>
       <button onclick="navigateTo('jurnal')" id="nav-mob-jurnal" class="nav-mob-btn py-1 text-slate-400 flex flex-col items-center"><i class="ph-bold ph-book text-lg"></i><span class="text-[10px] font-bold">Jurnal</span></button>
       <button onclick="navigateTo('leaderboard')" id="nav-mob-leaderboard" class="nav-mob-btn py-1 text-slate-400 flex flex-col items-center"><i class="ph-bold ph-trophy text-lg"></i><span class="text-[10px] font-bold">Peringkat</span></button>
@@ -358,177 +361,148 @@
     </div>
   </div>
 
-  <!-- MODAL ADMIN AUTH -->
-  <div id="admin-auth-modal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-slate-900 w-full max-w-xs rounded-2xl p-5 border space-y-3">
-      <h3 class="text-sm font-bold text-center">Login Petugas (Cloud Verified)</h3>
-      <input type="password" id="admin-pin-input" placeholder="PIN Admin" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-center text-sm font-bold tracking-widest">
-      <div class="flex gap-2">
-        <button onclick="closeAdminAuth()" class="w-1/2 py-2 border rounded-xl text-xs font-semibold">Batal</button>
-        <button onclick="handleAdminLogin()" class="w-1/2 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold">Masuk</button>
-      </div>
-    </div>
-  </div>
-
   <!-- MODAL ADD / EDIT BOOK -->
-<div id="add-book-modal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-  <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl p-5 border my-auto space-y-3 text-xs">
-    <div class="flex justify-between items-center border-b pb-2">
-      <!-- Judul Dinamis -->
-      <h3 class="font-bold text-sm" id="modal-book-title-header">Tambah Buku Baru</h3>
-      <button onclick="closeAddBookModal()"><i class="ph-bold ph-x text-base"></i></button>
-    </div>
-    <form onsubmit="saveBookEntry(event)" class="space-y-2.5">
-      <!-- Input Hidden untuk ID Buku (kosong jika tambah, terisi jika edit) -->
-      <input type="hidden" id="form-book-id">
-
-      <div>
-        <label class="block font-semibold mb-1">Judul Buku *</label>
-        <input type="text" id="form-book-title" required class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg">
+  <div id="add-book-modal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl p-5 border my-auto space-y-3 text-xs">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-bold text-sm" id="modal-book-title-header">Tambah Buku Baru</h3>
+        <button onclick="closeAddBookModal()"><i class="ph-bold ph-x text-base"></i></button>
       </div>
-      <div class="grid grid-cols-2 gap-2">
+      <form onsubmit="saveBookEntry(event)" class="space-y-2.5">
+        <input type="hidden" id="form-book-id">
         <div>
-          <label class="block font-semibold mb-1">Penulis *</label>
-          <input type="text" id="form-book-author" required class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg">
+          <label class="block font-semibold mb-1">Judul Buku *</label>
+          <input type="text" id="form-book-title" required class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-1">Penulis *</label>
+            <input type="text" id="form-book-author" required class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Kategori *</label>
+            <select id="form-book-category" class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg">
+              <option value="Fiksi">Fiksi</option>
+              <option value="Non-Fiksi">Non-Fiksi</option>
+              <option value="Sains & Teknologi">Sains & Teknologi</option>
+              <option value="Sejarah">Sejarah</option>
+              <option value="Modul Kelas">Modul Kelas</option>
+            </select>
+          </div>
         </div>
         <div>
-          <label class="block font-semibold mb-1">Kategori *</label>
-          <select id="form-book-category" class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg">
-            <option value="Fiksi">Fiksi</option>
-            <option value="Non-Fiksi">Non-Fiksi</option>
-            <option value="Sains & Teknologi">Sains & Teknologi</option>
-            <option value="Sejarah">Sejarah</option>
-            <option value="Modul Kelas">Modul Kelas</option>
-          </select>
+          <label class="block font-semibold mb-1">Sinopsis *</label>
+          <textarea id="form-book-desc" rows="3" required class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg"></textarea>
         </div>
-      </div>
-      <div>
-        <label class="block font-semibold mb-1">Sinopsis *</label>
-        <textarea id="form-book-desc" rows="3" required class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg"></textarea>
-      </div>
-      <div>
-        <label class="block font-semibold mb-1">Cover URL / Upload File</label>
-        <input type="url" id="form-book-cover-url" placeholder="https://..." class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg mb-1">
-        <input type="file" accept="image/*" onchange="handleCoverFile(event)" class="w-full text-[10px]">
-      </div>
-      <div>
-        <label class="block font-semibold mb-1">Konten Halaman Teks (Pisahkan dengan ||)</label>
-        <textarea id="form-book-content" rows="3" placeholder="Hal 1... || Hal 2..." class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg"></textarea>
-      </div>
-      <div class="flex justify-end gap-2 pt-2">
-        <button type="button" onclick="closeAddBookModal()" class="px-3 py-1.5 border rounded-lg">Batal</button>
-        <button type="submit" class="px-4 py-1.5 bg-emerald-600 text-white font-bold rounded-lg">Simpan Buku</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- WIDGET PEMUTAR MUSIK LO-FI / AMBIENT PLAYLIST -->
-<div id="music-widget" class="fixed bottom-20 right-4 z-40 transition-all duration-300">
-  
-  <!-- 1. TAMPILAN KAPSUL ULTRA-RINGKAS (PAS DI-MINIMIZE) -->
-  <button id="music-widget-minimized" onclick="toggleMusicWidgetMinimize()" class="flex items-center gap-2 bg-slate-900/90 text-white backdrop-blur-md border border-slate-700/80 px-3 py-2 rounded-full shadow-2xl hover:scale-105 transition-all">
-    <div class="relative flex items-center justify-center">
-      <i class="ph-bold ph-vinyl-record text-base text-emerald-400" id="mini-vinyl-icon"></i>
-      <!-- Lampu indikator berkedip pelan jika lagu diputar -->
-      <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 hidden" id="mini-status-pulse"></span>
-    </div>
-    <span class="text-[10px] font-bold tracking-wide truncate max-w-[90px]" id="mini-track-title">Musik</span>
-    <i class="ph-bold ph-caret-up text-xs text-slate-400"></i>
-  </button>
-
-  <!-- 2. TAMPILAN PLAYER PENUH (PENUH DETAIL) -->
-  <div id="music-widget-full" class="hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-3.5 w-72 space-y-3">
-    
-    <!-- Header Widget & Tombol Minimize -->
-    <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-      <div class="flex items-center gap-2">
-        <div class="w-2 h-2 rounded-full bg-slate-300" id="full-status-indicator"></div>
-        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Suasana Baca</span>
-      </div>
-      <button onclick="toggleMusicWidgetMinimize()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1">
-        <i class="ph-bold ph-caret-down"></i>
-      </button>
-    </div>
-
-    <!-- Info Lagu Aktif -->
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center text-white shrink-0 shadow-md">
-        <i class="ph-bold ph-vinyl-record text-xl" id="album-art-icon"></i>
-      </div>
-      <div class="overflow-hidden flex-1">
-        <h4 id="current-track-title" class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">Lo-Fi Chill Study</h4>
-        <p id="current-track-artist" class="text-[10px] text-slate-500 truncate">Instrumental Ambient</p>
-      </div>
-    </div>
-
-    <!-- Tombol Kontrol Utama -->
-    <div class="flex items-center justify-center gap-3">
-      <button onclick="playPrevTrack()" class="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><i class="ph-bold ph-skip-back text-sm"></i></button>
-      <button id="main-play-btn" onclick="togglePlayMusic()" class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md hover:bg-emerald-700 transition-all">
-        <i class="ph-bold ph-play text-base" id="main-play-icon"></i>
-      </button>
-      <button onclick="playNextTrack()" class="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><i class="ph-bold ph-skip-forward text-sm"></i></button>
-    </div>
-
-    <!-- Selector / Dropdown Playlist -->
-    <div class="space-y-1">
-      <label class="text-[9px] font-extrabold text-slate-400 block tracking-wider">PILIH SUASANA:</label>
-      <select id="playlist-select" onchange="changeTrack(this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none">
-      </select>
+        <div>
+          <label class="block font-semibold mb-1">Cover URL / Upload File</label>
+          <input type="url" id="form-book-cover-url" placeholder="https://..." class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg mb-1">
+          <input type="file" accept="image/*" onchange="handleCoverFile(event)" class="w-full text-[10px]">
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">Konten Halaman Teks (Pisahkan dengan ||)</label>
+          <textarea id="form-book-content" rows="3" placeholder="Hal 1... || Hal 2..." class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg"></textarea>
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">Link File PDF (Opsional - Gantikan Teks)</label>
+          <input type="url" id="form-book-pdf" placeholder="https://.../buku.pdf" class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg">
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeAddBookModal()" class="px-3 py-1.5 border rounded-lg">Batal</button>
+          <button type="submit" class="px-4 py-1.5 bg-emerald-600 text-white font-bold rounded-lg">Simpan Buku</button>
+        </div>
+      </form>
     </div>
   </div>
 
-  <audio id="bg-music-player" loop></audio>
-</div>
-
-<!-- MODAL AUTHENTICATION (LOGIN / REGISTRASI) -->
-<div id="user-auth-modal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-  <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 border border-slate-200 dark:border-slate-800 space-y-4 shadow-2xl relative">
-    <button onclick="closeUserAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="ph-bold ph-x text-lg"></i></button>
-    <div class="text-center space-y-1">
-      <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto text-2xl"><i class="ph-bold ph-user-circle"></i></div>
-      <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">Masuk ke Pojok Baca</h3>
-      <p class="text-xs text-slate-500">Login untuk dapat berkomentar, beri ulasan, dan isi jurnal.</p>
-    </div>
-
-    <!-- Tombol Login Google -->
-    <button onclick="loginWithGoogle()" class="w-full py-2.5 px-4 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4" alt="Google">
-      Lanjutkan dengan Google
+  <!-- WIDGET PEMUTAR MUSIK LO-FI -->
+  <div id="music-widget" class="fixed bottom-20 right-4 z-40 transition-all duration-300">
+    <button id="music-widget-minimized" onclick="toggleMusicWidgetMinimize()" class="flex items-center gap-2 bg-slate-900/90 text-white backdrop-blur-md border border-slate-700/80 px-3 py-2 rounded-full shadow-2xl hover:scale-105 transition-all">
+      <div class="relative flex items-center justify-center">
+        <i class="ph-bold ph-vinyl-record text-base text-emerald-400" id="mini-vinyl-icon"></i>
+        <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 hidden" id="mini-status-pulse"></span>
+      </div>
+      <span class="text-[10px] font-bold tracking-wide truncate max-w-[90px]" id="mini-track-title">Musik</span>
+      <i class="ph-bold ph-caret-up text-xs text-slate-400"></i>
     </button>
 
-    <div class="relative flex py-1 items-center">
-      <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
-      <span class="flex-shrink mx-2 text-[10px] text-slate-400 uppercase font-bold">atau Email</span>
-      <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+    <div id="music-widget-full" class="hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-3.5 w-72 space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full bg-slate-300" id="full-status-indicator"></div>
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Suasana Baca</span>
+        </div>
+        <button onclick="toggleMusicWidgetMinimize()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1">
+          <i class="ph-bold ph-caret-down"></i>
+        </button>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center text-white shrink-0 shadow-md">
+          <i class="ph-bold ph-vinyl-record text-xl" id="album-art-icon"></i>
+        </div>
+        <div class="overflow-hidden flex-1">
+          <h4 id="current-track-title" class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">Lo-Fi Chill Study</h4>
+          <p id="current-track-artist" class="text-[10px] text-slate-500 truncate">Instrumental Ambient</p>
+        </div>
+      </div>
+      <div class="flex items-center justify-center gap-3">
+        <button onclick="playPrevTrack()" class="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><i class="ph-bold ph-skip-back text-sm"></i></button>
+        <button id="main-play-btn" onclick="togglePlayMusic()" class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md hover:bg-emerald-700 transition-all">
+          <i class="ph-bold ph-play text-base" id="main-play-icon"></i>
+        </button>
+        <button onclick="playNextTrack()" class="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><i class="ph-bold ph-skip-forward text-sm"></i></button>
+      </div>
+      <div class="space-y-1">
+        <label class="text-[9px] font-extrabold text-slate-400 block tracking-wider">PILIH SUASANA:</label>
+        <select id="playlist-select" onchange="changeTrack(this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none"></select>
+      </div>
     </div>
-
-    <form onsubmit="handleEmailAuth(event)" class="space-y-3">
-      <input type="email" id="auth-email" required placeholder="Email Sekolah / Pribadi" class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-xs">
-      <input type="password" id="auth-password" required placeholder="Kata Sandi" class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-xs">
-      <button type="submit" id="auth-submit-btn" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md">Masuk / Daftar</button>
-    </form>
+    <audio id="bg-music-player" loop></audio>
   </div>
-</div>
+
+  <!-- MODAL AUTHENTICATION -->
+  <div id="user-auth-modal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 border border-slate-200 dark:border-slate-800 space-y-4 shadow-2xl relative">
+      <button onclick="closeUserAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="ph-bold ph-x text-lg"></i></button>
+      <div class="text-center space-y-1">
+        <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto text-2xl"><i class="ph-bold ph-user-circle"></i></div>
+        <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">Masuk ke Pojok Baca</h3>
+        <p class="text-xs text-slate-500">Login untuk dapat berkomentar, beri ulasan, dan isi jurnal.</p>
+      </div>
+      <button onclick="loginWithGoogle()" class="w-full py-2.5 px-4 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4" alt="Google">
+        Lanjutkan dengan Google
+      </button>
+      <div class="relative flex py-1 items-center">
+        <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+        <span class="flex-shrink mx-2 text-[10px] text-slate-400 uppercase font-bold">atau Email</span>
+        <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+      </div>
+      <form onsubmit="handleEmailAuth(event)" class="space-y-3">
+        <input type="email" id="auth-email" required placeholder="Email Sekolah / Pribadi" class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-xs">
+        <input type="password" id="auth-password" required placeholder="Kata Sandi" class="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-xs">
+        <button type="submit" id="auth-submit-btn" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md">Masuk / Daftar</button>
+      </form>
+    </div>
+  </div>
 
   <!-- TOAST -->
   <div id="toast" class="fixed bottom-16 md:bottom-6 right-4 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-xs transition-all duration-300 translate-y-20 opacity-0 pointer-events-none"><i class="ph-bold ph-check-circle text-emerald-400"></i><span id="toast-msg">Info</span></div>
 
   <!-- FIREBASE & MAIN APP SCRIPT -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { 
-  getAuth, 
-  signInWithPopup, 
-  GoogleAuthProvider, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged,
-  updateProfile
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, addDoc, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { 
+      getAuth, 
+      signInWithPopup, 
+      GoogleAuthProvider, 
+      createUserWithEmailAndPassword, 
+      signInWithEmailAndPassword, 
+      signOut, 
+      onAuthStateChanged,
+      updateProfile
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBkXyoiU1EAgNLvuAAv2Zi5b5ek1_Lo-q8",
@@ -543,217 +517,228 @@ import {
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
+    const auth = getAuth(app);
+    const googleProvider = new GoogleAuthProvider();
 
-let isAdmin = false;
-let currentUser = null;
-let tempAvatarBase64 = "";
+    let isAdmin = false;
+    let userRole = ""; 
+    let currentUser = null;
+    let tempAvatarBase64 = "";
 
-const PLAYLIST = [
-  {
-    id: 0,
-    title: "Lo-Fi Study Beats",
-    artist: "Lofi Chill & Chillout",
-    url: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"
-  },
-  {
-    id: 1,
-    title: "Piano Perpustakaan",
-    artist: "Peaceful Instrumental Piano",
-    url: "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=relaxing-piano-10701.mp3"
-  }
-];
+    const PLAYLIST = [
+      {
+        id: 0,
+        title: "Lo-Fi Study Beats",
+        artist: "Lofi Chill & Chillout",
+        url: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"
+      },
+      {
+        id: 1,
+        title: "Piano Perpustakaan",
+        artist: "Peaceful Instrumental Piano",
+        url: "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=relaxing-piano-10701.mp3"
+      }
+    ];
 
-let currentTrackIndex = 0;
-let isWidgetMinimized = true;
+    let currentTrackIndex = 0;
+    let isWidgetMinimized = true;
 
-// Initialize Playlist Selector saat pertama dimuat
-function initMusicPlayer() {
-  const selectEl = document.getElementById('playlist-select');
-  if(!selectEl) return;
+    function initMusicPlayer() {
+      const selectEl = document.getElementById('playlist-select');
+      if(!selectEl) return;
+      selectEl.innerHTML = PLAYLIST.map((track, idx) => `
+        <option value="${idx}">${track.title}</option>
+      `).join('');
+      loadTrack(0);
+    }
 
-  selectEl.innerHTML = PLAYLIST.map((track, idx) => `
-    <option value="${idx}">${track.title}</option>
-  `).join('');
+    function loadTrack(index) {
+      currentTrackIndex = index;
+      const track = PLAYLIST[index];
+      const player = document.getElementById('bg-music-player');
+      player.src = track.url;
+      document.getElementById('current-track-title').textContent = track.title;
+      document.getElementById('current-track-artist').textContent = track.artist;
+      document.getElementById('mini-track-title').textContent = track.title;
+      document.getElementById('playlist-select').value = index;
+    }
 
-  loadTrack(0);
-}
+    window.togglePlayMusic = function() {
+      const player = document.getElementById('bg-music-player');
+      const playIcon = document.getElementById('main-play-icon');
+      const albumArt = document.getElementById('album-art-icon');
+      const miniVinyl = document.getElementById('mini-vinyl-icon');
+      const miniPulse = document.getElementById('mini-status-pulse');
+      const fullStatus = document.getElementById('full-status-indicator');
 
-function loadTrack(index) {
-  currentTrackIndex = index;
-  const track = PLAYLIST[index];
-  const player = document.getElementById('bg-music-player');
-
-  player.src = track.url;
-  document.getElementById('current-track-title').textContent = track.title;
-  document.getElementById('current-track-artist').textContent = track.artist;
-  document.getElementById('mini-track-title').textContent = track.title;
-  document.getElementById('playlist-select').value = index;
-}
-
-window.togglePlayMusic = function() {
-  const player = document.getElementById('bg-music-player');
-  const playIcon = document.getElementById('main-play-icon');
-  const albumArt = document.getElementById('album-art-icon');
-  const miniVinyl = document.getElementById('mini-vinyl-icon');
-  const miniPulse = document.getElementById('mini-status-pulse');
-  const fullStatus = document.getElementById('full-status-indicator');
-
-  if (player.paused) {
-    player.play().then(() => {
-      playIcon.className = "ph-bold ph-pause text-base";
-      albumArt.classList.add('animate-spin');
-      miniVinyl.classList.add('animate-spin');
-      
-      miniPulse.classList.remove('hidden');
-      miniPulse.classList.add('animate-ping');
-      fullStatus.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
-    }).catch(e => console.log("Gagal memutar audio:", e));
-  } else {
-    player.pause();
-    playIcon.className = "ph-bold ph-play text-base";
-    albumArt.classList.remove('animate-spin');
-    miniVinyl.classList.remove('animate-spin');
-    
-    miniPulse.classList.add('hidden');
-    miniPulse.classList.remove('animate-ping');
-    fullStatus.className = "w-2 h-2 rounded-full bg-slate-300";
-  }
-}
-
-window.changeTrack = function(index) {
-  const wasPlaying = !document.getElementById('bg-music-player').paused;
-  loadTrack(parseInt(index));
-  if (wasPlaying) {
-    document.getElementById('bg-music-player').play();
-  }
-}
-
-window.playNextTrack = function() {
-  const nextIndex = (currentTrackIndex + 1) % PLAYLIST.length;
-  changeTrack(nextIndex);
-}
-
-window.playPrevTrack = function() {
-  const prevIndex = (currentTrackIndex - 1 + PLAYLIST.length) % PLAYLIST.length;
-  changeTrack(prevIndex);
-}
-
-window.toggleMusicWidgetMinimize = function() {
-  const minBtn = document.getElementById('music-widget-minimized');
-  const fullWidget = document.getElementById('music-widget-full');
-
-  if (isWidgetMinimized) {
-    minBtn.classList.add('hidden');
-    fullWidget.classList.remove('hidden');
-    isWidgetMinimized = false;
-  } else {
-    fullWidget.classList.add('hidden');
-    minBtn.classList.remove('hidden');
-    isWidgetMinimized = true;
-  }
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  initMusicPlayer();
-});
-
-// AUTHENTICATION & SESSION STATE LISTENER
-onAuthStateChanged(auth, async (user) => {
-  currentUser = user;
-  isAdmin = false;
-  
-  const userAuthBtn = document.getElementById('user-auth-btn') || document.getElementById('auth-nav-button');
-  
-  if (user) {
-    console.log("User login UID:", user.uid);
-    
-    // Cek apakah UID user terdaftar sebagai Admin di Firestore
-    try {
-      const adminDoc = await getDoc(doc(db, "admins", user.uid));
-      if (adminDoc.exists()) {
-        isAdmin = true;
-        console.log("Status: ADMIN TERVERIFIKASI!");
+      if (player.paused) {
+        player.play().then(() => {
+          playIcon.className = "ph-bold ph-pause text-base";
+          albumArt.classList.add('animate-spin');
+          miniVinyl.classList.add('animate-spin');
+          miniPulse.classList.remove('hidden');
+          miniPulse.classList.add('animate-ping');
+          fullStatus.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+        }).catch(e => console.log("Gagal memutar audio:", e));
       } else {
-        console.log("Status: Siswa biasa.");
+        player.pause();
+        playIcon.className = "ph-bold ph-play text-base";
+        albumArt.classList.remove('animate-spin');
+        miniVinyl.classList.remove('animate-spin');
+        miniPulse.classList.add('hidden');
+        miniPulse.classList.remove('animate-ping');
+        fullStatus.className = "w-2 h-2 rounded-full bg-slate-300";
       }
-    } catch (err) {
-      console.error("Gagal memeriksa status admin:", err);
-    }
-    
-    await updateUserProfileUI(user);
-
-    if (userAuthBtn) {
-      userAuthBtn.onclick = () => navigateTo('profile');
-      userAuthBtn.innerHTML = `<i class="ph-bold ph-user-circle text-emerald-500 text-base"></i> <span class="hidden sm:inline">${user.displayName || 'Profil'}</span>`;
     }
 
-  } else {
-    currentUser = null;
-    isAdmin = false;
-    await updateUserProfileUI(null);
-
-    if (userAuthBtn) {
-      userAuthBtn.onclick = () => openUserAuthModal();
-      userAuthBtn.innerHTML = `<i class="ph-bold ph-lock-key text-slate-400"></i> <span class="hidden sm:inline">Login</span>`;
+    window.changeTrack = function(index) {
+      const wasPlaying = !document.getElementById('bg-music-player').paused;
+      loadTrack(parseInt(index));
+      if (wasPlaying) {
+        document.getElementById('bg-music-player').play();
+      }
     }
-  }
-});
-    
-window.openUserAuthModal = function() { document.getElementById('user-auth-modal').classList.remove('hidden'); }
-window.closeUserAuthModal = function() { document.getElementById('user-auth-modal').classList.add('hidden'); }
 
-window.loginWithGoogle = async function() {
-  try {
-    const result = await signInWithPopup(auth, googleProvider);
-    showToast(`Selamat datang, ${result.user.displayName}!`);
-    closeUserAuthModal();
-  } catch (error) {
-    console.error(error);
-    showToast("Gagal login dengan Google.");
-  }
-}
+    window.playNextTrack = function() {
+      const nextIndex = (currentTrackIndex + 1) % PLAYLIST.length;
+      changeTrack(nextIndex);
+    }
 
-window.handleEmailAuth = async function(e) {
-  e.preventDefault();
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value.trim();
+    window.playPrevTrack = function() {
+      const prevIndex = (currentTrackIndex - 1 + PLAYLIST.length) % PLAYLIST.length;
+      changeTrack(prevIndex);
+    }
 
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    showToast("Login Berhasil!");
-    closeUserAuthModal();
-  } catch (error) {
-    if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+    window.toggleMusicWidgetMinimize = function() {
+      const minBtn = document.getElementById('music-widget-minimized');
+      const fullWidget = document.getElementById('music-widget-full');
+      if (isWidgetMinimized) {
+        minBtn.classList.add('hidden');
+        fullWidget.classList.remove('hidden');
+        isWidgetMinimized = false;
+      } else {
+        fullWidget.classList.add('hidden');
+        minBtn.classList.remove('hidden');
+        isWidgetMinimized = true;
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initMusicPlayer();
+    });
+
+    async function trackVisitorCount() {
       try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        showToast("Akun baru berhasil dibuat!");
-        closeUserAuthModal();
+        const { doc, getDoc, setDoc, updateDoc, increment } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+        const statRef = doc(db, "stats", "visitors");
+        const snap = await getDoc(statRef);
+        if (snap.exists()) {
+          await updateDoc(statRef, { count: increment(1) });
+          document.getElementById('visitor-count-badge').textContent = snap.data().count + 1;
+        } else {
+          await setDoc(statRef, { count: 1 });
+          document.getElementById('visitor-count-badge').textContent = "1";
+        }
       } catch (err) {
-        alert("Gagal daftar: " + err.message);
+        console.log("Visitor counter skipped:", err);
+        document.getElementById('visitor-count-badge').textContent = "1";
       }
-    } else {
-      alert("Error Login: " + error.message);
     }
-  }
-}
 
-window.handleUserLogout = function() {
-  signOut(auth).then(() => {
-    showToast("Berhasil keluar.");
-    navigateTo('katalog');
-  });
-}
+    // AUTHENTICATION & SESSION STATE LISTENER
+    onAuthStateChanged(auth, async (user) => {
+      currentUser = user;
+      isAdmin = false;
+      userRole = "";
+      
+      const userAuthBtn = document.getElementById('user-auth-btn') || document.getElementById('auth-nav-button');
+      
+      if (user) {
+        console.log("User login UID:", user.uid);
+        try {
+          const adminDoc = await getDoc(doc(db, "admins", user.uid));
+          if (adminDoc.exists()) {
+            isAdmin = true;
+            const data = adminDoc.data();
+            userRole = data.role || "Admin";
+            console.log("Status: Admin terverifikasi dengan role:", userRole);
+          }
+        } catch (err) {
+          console.error("Gagal memeriksa status admin:", err);
+        }
+        
+        await updateUserProfileUI(user);
 
-function requireAuth(actionCallback) {
-  if (!currentUser) {
-    alert("Silakan login terlebih dahulu untuk menggunakan fitur ini!");
-    openUserAuthModal();
-    return false;
-  }
-  return actionCallback();
-}
+        if (userAuthBtn) {
+          userAuthBtn.onclick = () => navigateTo('profile');
+          userAuthBtn.innerHTML = `<i class="ph-bold ph-user-circle text-emerald-500 text-base"></i> <span class="hidden sm:inline">${user.displayName || 'Profil'}</span>`;
+        }
+      } else {
+        currentUser = null;
+        isAdmin = false;
+        userRole = "";
+        await updateUserProfileUI(null);
+
+        if (userAuthBtn) {
+          userAuthBtn.onclick = () => openUserAuthModal();
+          userAuthBtn.innerHTML = `<i class="ph-bold ph-lock-key text-slate-400"></i> <span class="hidden sm:inline">Login</span>`;
+        }
+      }
+    });
+        
+    window.openUserAuthModal = function() { document.getElementById('user-auth-modal').classList.remove('hidden'); }
+    window.closeUserAuthModal = function() { document.getElementById('user-auth-modal').classList.add('hidden'); }
+
+    window.loginWithGoogle = async function() {
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        showToast(`Selamat datang, ${result.user.displayName}!`);
+        closeUserAuthModal();
+      } catch (error) {
+        console.error(error);
+        showToast("Gagal login dengan Google.");
+      }
+    }
+
+    window.handleEmailAuth = async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value.trim();
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        showToast("Login Berhasil!");
+        closeUserAuthModal();
+      } catch (error) {
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+          try {
+            await createUserWithEmailAndPassword(auth, email, password);
+            showToast("Akun baru berhasil dibuat!");
+            closeUserAuthModal();
+          } catch (err) {
+            alert("Gagal daftar: " + err.message);
+          }
+        } else {
+          alert("Error Login: " + error.message);
+        }
+      }
+    }
+
+    window.handleUserLogout = function() {
+      signOut(auth).then(() => {
+        showToast("Berhasil keluar.");
+        navigateTo('katalog');
+      });
+    }
+
+    function requireAuth(actionCallback) {
+      if (!currentUser) {
+        alert("Silakan login terlebih dahulu untuk menggunakan fitur ini!");
+        openUserAuthModal();
+        return false;
+      }
+      return actionCallback();
+    }
 
     const DEFAULT_BOOKS = [
       {
@@ -782,28 +767,20 @@ function requireAuth(actionCallback) {
     let tempCoverBase64 = '';
     let lastCommentTime = 0;
 
-const BAD_WORDS = [
-  'anjing', 'babi', 'goblok', 'tolol', 'bangsat', 'kontol', 'memek', 
-  'ngentot', 'kampang', 'pantek', 'puki', 'bajingan', 'jancok', 'bebal', 'titit'
-];
+    const BAD_WORDS = [
+      'anjing', 'babi', 'goblok', 'tolol', 'bangsat', 'kontol', 'memek', 
+      'ngentot', 'kampang', 'pantek', 'puki', 'bajingan', 'jancok', 'bebal', 'titit'
+    ];
 
-function containsBadWords(text) {
-  const lower = text.toLowerCase();
-  return BAD_WORDS.some(word => lower.includes(word));
-}
-
-function sanitizeText(text) {
-  let cleaned = text;
-  BAD_WORDS.forEach(word => {
-    const regex = new RegExp(word, 'gi');
-    cleaned = cleaned.replace(regex, '***');
-  });
-  return cleaned;
-}
+    function containsBadWords(text) {
+      const lower = text.toLowerCase();
+      return BAD_WORDS.some(word => lower.includes(word));
+    }
 
     const categories = ['Semua', 'Fiksi', 'Non-Fiksi', 'Sains & Teknologi', 'Sejarah', 'Modul Kelas'];
 
     window.onload = async function() {
+      await trackVisitorCount();
       updateUserProfileUI(currentUser);
       updateAdminUI();
       renderCategoryChips();
@@ -819,878 +796,943 @@ function sanitizeText(text) {
       }
     };
 
-async function loadAllDataFromFirestore() {
-  try {
-    showToast('Memuat data...');
+    async function loadAllDataFromFirestore() {
+      try {
+        showToast('Memuat data...');
+        const fetchCollection = async (collName) => {
+          try {
+            return await getDocs(collection(db, collName));
+          } catch (e) {
+            console.warn(`Gagal memuat koleksi ${collName}:`, e);
+            return { docs: [] };
+          }
+        };
 
-    const [bookSnap, revSnap, comSnap, jSnap, rSnap] = await Promise.all([
-      getDocs(collection(db, "books")),
-      getDocs(collection(db, "reviews")),
-      getDocs(collection(db, "comments")),
-      getDocs(collection(db, "journals")),
-      getDocs(collection(db, "requests"))
-    ]);
+        const [bookSnap, revSnap, comSnap, jSnap, rSnap] = await Promise.all([
+          fetchCollection("books"),
+          fetchCollection("reviews"),
+          fetchCollection("comments"),
+          fetchCollection("journals"),
+          fetchCollection("requests")
+        ]);
 
-    books = bookSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    if (books.length === 0) books = DEFAULT_BOOKS;
+        books = bookSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (books.length === 0) books = DEFAULT_BOOKS;
 
-    reviews = {};
-    revSnap.docs.forEach(d => {
-      const dat = d.data();
-      if (!reviews[dat.bookId]) reviews[dat.bookId] = [];
-      reviews[dat.bookId].push({ id: d.id, ...dat });
-    });
+        reviews = {};
+        revSnap.docs.forEach(d => {
+          const dat = d.data();
+          if (!reviews[dat.bookId]) reviews[dat.bookId] = [];
+          reviews[dat.bookId].push({ id: d.id, ...dat });
+        });
 
-    comments = {};
-    comSnap.docs.forEach(d => {
-      const dat = d.data();
-      if (!comments[dat.bookId]) comments[dat.bookId] = [];
-      comments[dat.bookId].push({ id: d.id, ...dat });
-    });
+        comments = {};
+        comSnap.docs.forEach(d => {
+          const dat = d.data();
+          if (!comments[dat.bookId]) comments[dat.bookId] = [];
+          comments[dat.bookId].push({ id: d.id, ...dat });
+        });
 
-    journals = jSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    requests = rSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        journals = jSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        requests = rSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    renderBooks();
-    renderJournals();
-    renderLeaderboard();
-    renderRequests();
-  } catch (err) {
-    console.error("Gagal memuat Firestore:", err);
-    showToast('Gagal memuat database.');
-    books = DEFAULT_BOOKS;
-    renderBooks();
-  }
-}
-
-async function updateUserProfileUI(user) {
-  const avatarImg = document.getElementById('profile-avatar-img');
-  const nameText = document.getElementById('profile-display-name');
-  const emailText = document.getElementById('profile-email-text');
-  const bioText = document.getElementById('profile-bio-text');
-  const editProfileForm = document.getElementById('edit-profile-form');
-  const loginProfButton = document.getElementById('open-login-profile');
-
-  // 1. Jika user BELUM LOGIN
-  if (!user) {
-    if (bioText) bioText.textContent = `"Login terlebih dahulu untuk mengedit bio"`;
-    if (editProfileForm) editProfileForm.classList.add('hidden');
-    if (loginProfButton) loginProfButton.classList.remove('hidden');
-    if (nameText) nameText.textContent = "Tamu / Siswa";
-    if (emailText) emailText.textContent = "Belum terhubung";
-    if (avatarImg) avatarImg.src = "https://placehold.co/150x150/10b981/ffffff?text=User";
-    updateAdminUI();
-    return;
-  }
-
-  // 2. Jika user SUDAH LOGIN
-  const photoURL = user.photoURL || `https://placehold.co/150x150/10b981/ffffff?text=${user.email ? user.email[0].toUpperCase() : 'U'}`;
-  
-  if (avatarImg) avatarImg.src = photoURL;
-  if (nameText) nameText.textContent = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
-  if (emailText) emailText.textContent = user.email || '';
-
-  // Atur Tampilan Form
-  if (editProfileForm) editProfileForm.classList.remove('hidden');
-  if (loginProfButton) loginProfButton.classList.add('hidden');
-
-  // Isi data ke Form Edit
-  const editName = document.getElementById('edit-display-name');
-  const editAvatar = document.getElementById('edit-avatar-url');
-  if (editName) editName.value = user.displayName || '';
-  if (editAvatar) editAvatar.value = user.photoURL || '';
-
-  // 3. Ambil Bio dari Firestore
-  try {
-    const userDocSnap = await getDoc(doc(db, "users", user.uid));
-    const editBio = document.getElementById('edit-bio');
-    if (userDocSnap.exists()) {
-      const userData = userDocSnap.data();
-      const bio = userData.bio || "Belum ada bio.";
-      if (bioText) bioText.textContent = `"${bio}"`;
-      if (editBio) editBio.value = userData.bio || '';
-    } else {
-      if (bioText) bioText.textContent = `"Gemar membaca buku di Pojok Baca X-1."`;
-      if (editBio) editBio.value = '';
-    }
-  } catch(err) {
-    console.error("Gagal memuat bio:", err);
-  }
-
-  // Update UI status admin
-  updateAdminUI();
-}
-
-window.handleAvatarUpload = function(e) {
-  const file = e.target.files[0];
-  if(file) {
-    const reader = new FileReader();
-    reader.onload = function(evt) { tempAvatarBase64 = evt.target.result; };
-    reader.readAsDataURL(file);
-  }
-}
-
-window.saveUserProfile = async function(e) {
-  e.preventDefault();
-  if(!currentUser) return;
-
-  const newName = document.getElementById('edit-display-name').value.trim();
-  const urlAvatar = document.getElementById('edit-avatar-url').value.trim();
-  const newBio = document.getElementById('edit-bio').value.trim();
-  const finalPhoto = tempAvatarBase64 || urlAvatar || currentUser.photoURL;
-
-  try {
-    await updateProfile(currentUser, {
-      displayName: newName,
-      photoURL: finalPhoto
-    });
-
-    const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-    await setDoc(doc(db, "users", currentUser.uid), {
-      bio: newBio,
-      displayName: newName,
-      email: currentUser.email,
-      photoURL: finalPhoto
-    }, { merge: true });
-
-    showToast("Profil & Bio berhasil diperbarui!");
-    updateUserProfileUI(currentUser);
-  } catch (err) {
-    console.error(err);
-    showToast("Gagal memperbarui profil.");
-  }
-}
-
-window.loadAdminReports = async function() {
-  const container = document.getElementById('reports-list-container');
-  const badge = document.getElementById('reports-count-badge');
-  const section = document.getElementById('admin-reports-section');
-
-  if (!isAdmin || !container) {
-    if(section) section.classList.add('hidden');
-    return;
-  }
-
-  section.classList.remove('hidden');
-
-  try {
-    const snap = await getDocs(collection(db, "reports"));
-    const reportsList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    if(badge) badge.textContent = reportsList.length;
-
-    if (reportsList.length === 0) {
-      container.innerHTML = '<p class="text-xs text-slate-400 italic">Tidak ada laporan konten melanggar saat ini.</p>';
-      return;
+        renderBooks();
+        renderJournals();
+        renderLeaderboard();
+        renderRequests();
+      } catch (err) {
+        console.error("Gagal memuat Firestore:", err);
+        showToast('Gagal memuat database.');
+        books = DEFAULT_BOOKS;
+        renderBooks();
+      }
     }
 
-    container.innerHTML = reportsList.map(rep => `
-      <div class="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-rose-200 dark:border-rose-900/40 text-xs space-y-1.5 shadow-sm">
-        <div class="flex justify-between items-center">
-          <span class="font-bold text-rose-600 uppercase text-[10px] tracking-wider">[${rep.type || 'Laporan'}]</span>
-          <span class="text-[10px] text-slate-400">${rep.date || ''}</span>
-        </div>
-        <p class="text-slate-700 dark:text-slate-300 font-medium">Alasan: "<span class="italic text-rose-500">${rep.reason}</span>"</p>
-        <div class="p-2 bg-slate-50 dark:bg-slate-800 rounded-xl text-[11px] text-slate-500 truncate">
-          Snippet: "${rep.snippet || 'Detail konten'}"
-        </div>
-        <div class="flex justify-end gap-2 pt-1">
-          <button onclick="dismissReport('${rep.id}')" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-[10px] font-bold hover:bg-slate-200">
-            Abaikan
-          </button>
-          <button onclick="handleReportDeleteContent('${rep.type}', '${rep.itemId}', '${rep.id}')" class="px-2.5 py-1 bg-rose-600 text-white rounded-lg text-[10px] font-bold hover:bg-rose-700">
-            Hapus Konten
-          </button>
-        </div>
-      </div>
-    `).join('');
+    async function updateUserProfileUI(user) {
+      const avatarImg = document.getElementById('profile-avatar-img');
+      const nameText = document.getElementById('profile-display-name');
+      const emailText = document.getElementById('profile-email-text');
+      const bioText = document.getElementById('profile-bio-text');
+      const editProfileForm = document.getElementById('edit-profile-form');
+      const loginProfButton = document.getElementById('open-login-profile');
 
-  } catch(err) {
-    console.error("Gagal memuat laporan:", err);
-  }
-}
+      if (!user) {
+        if (bioText) bioText.textContent = `"Login terlebih dahulu untuk mengedit bio"`;
+        if (editProfileForm) editProfileForm.classList.add('hidden');
+        if (loginProfButton) loginProfButton.classList.remove('hidden');
+        if (nameText) nameText.textContent = "Tamu / Siswa";
+        if (emailText) emailText.textContent = "Belum terhubung";
+        if (avatarImg) avatarImg.src = "https://placehold.co/150x150/10b981/ffffff?text=User";
+        updateAdminUI();
+        return;
+      }
 
-window.dismissReport = async function(reportId) {
-  try {
-    await deleteDoc(doc(db, "reports", reportId));
-    showToast('Laporan diabaikan.');
-    loadAdminReports();
-  } catch(err) {
-    showToast('Gagal menghapus laporan.');
-  }
-}
+      const photoURL = user.photoURL || `https://placehold.co/150x150/10b981/ffffff?text=${user.email ? user.email[0].toUpperCase() : 'U'}`;
+      if (avatarImg) avatarImg.src = photoURL;
+      if (nameText) nameText.textContent = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
+      if (emailText) emailText.textContent = user.email || '';
 
-window.handleReportDeleteContent = async function(type, itemId, reportId) {
-  if(!currentUser) {
-    alert("Akses ditolak!");
-    return;
-  }
-  
-  try {
-    const adminDoc = await getDoc(doc(db, "admins", currentUser.uid));
-    if (!adminDoc.exists()) {
-      alert("⚠️ Akses ditolak! Akun Anda bukan Admin terverifikasi.");
-      return;
-    }
+      if (editProfileForm) editProfileForm.classList.remove('hidden');
+      if (loginProfButton) loginProfButton.classList.add('hidden');
 
-    if(!confirm('Hapus konten yang dilaporkan ini?')) return;
-    
-    let collectionName = "comments";
-    if(type === 'review') collectionName = "reviews";
-    if(type === 'journal') collectionName = "journals";
+      const editName = document.getElementById('edit-display-name');
+      const editAvatar = document.getElementById('edit-avatar-url');
+      if (editName) editName.value = user.displayName || '';
+      if (editAvatar) editAvatar.value = user.photoURL || '';
 
-    await deleteDoc(doc(db, collectionName, itemId));
-    await deleteDoc(doc(db, "reports", reportId));
+      try {
+        const userDocSnap = await getDoc(doc(db, "users", user.uid));
+        const editBio = document.getElementById('edit-bio');
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          const bio = userData.bio || "Belum ada bio.";
+          if (bioText) bioText.textContent = `"${bio}"`;
+          if (editBio) editBio.value = userData.bio || '';
+        } else {
+          if (bioText) bioText.textContent = `"Gemar membaca buku di Pojok Baca X-1."`;
+          if (editBio) editBio.value = '';
+        }
+      } catch(err) {
+        console.error("Gagal memuat bio:", err);
+      }
 
-    showToast('Konten melanggar & laporan berhasil dihapus!');
-    await loadAllDataFromFirestore();
-    loadAdminReports();
-  } catch(err) {
-    console.error(err);
-    showToast('Gagal menghapus konten.');
-  }
-}
-
-window.navigateTo = function(pageView, updateHash = true) {
-  document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
-  
-  const target = document.getElementById(`view-${pageView}`);
-  if(target) target.classList.remove('hidden');
-
-  if (updateHash) {
-    window.location.hash = pageView;
-  }
-
-  document.querySelectorAll('.nav-desk-btn').forEach(btn => {
-    btn.className = "nav-desk-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900";
-  });
-  const deskActive = document.getElementById(`nav-desk-${pageView}`);
-  if(deskActive) deskActive.className = "nav-desk-btn px-4 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm";
-
-  document.querySelectorAll('.nav-mob-btn').forEach(btn => {
-    btn.classList.remove('text-emerald-600');
-    btn.classList.add('text-slate-400');
-  });
-  const mobActive = document.getElementById(`nav-mob-${pageView}`);
-  if(mobActive) {
-    mobActive.classList.remove('text-slate-400');
-    mobActive.classList.add('text-emerald-600');
-  }
-
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
-window.addEventListener('hashchange', () => {
-  const hash = window.location.hash.substring(1) || 'katalog';
-  if(hash.startsWith('detail-')) {
-    const bookId = hash.replace('detail-', '');
-    openBookDetail(bookId, false);
-  } else {
-    navigateTo(hash, false);
-  }
-});
-
-window.toggleDarkMode = function() {
-  if (document.documentElement.classList.contains('dark')) {
-    document.documentElement.classList.remove('dark');
-    localStorage.setItem('x1_theme', 'light');
-    showToast('Mode Terang diaktifkan');
-  } else {
-    document.documentElement.classList.add('dark');
-    localStorage.setItem('x1_theme', 'dark');
-    showToast('Mode Gelap diaktifkan');
-  }
-}
-
-window.openAdminAuth = function() {
-  if(isAdmin) {
-    isAdmin = false;
-    updateAdminUI();
-    showToast('Keluar dari mode admin');
-  } else {
-    document.getElementById('admin-auth-modal').classList.remove('hidden');
-  }
-}
-
-window.closeAdminAuth = function() { document.getElementById('admin-auth-modal').classList.add('hidden'); }
-
-window.handleAdminLogin = async function() {
-  const pin = document.getElementById('admin-pin-input').value.trim();
-  try {
-    const adminDoc = await getDoc(doc(db, "config", "admin"));
-    const correctPin = adminDoc.exists() ? adminDoc.data().pin : "x1juara";
-    if(pin === correctPin) {
-      isAdmin = true;
       updateAdminUI();
-      closeAdminAuth();
-      showToast('Login Admin Berhasil!');
-      if(currentUser) updateUserProfileUI(currentUser);
-    } else {
-      alert('PIN Admin Salah!');
     }
-  } catch(e) {
-    alert('Gagal verifikasi PIN.');
-  }
-}
 
-function updateAdminUI() {
-  const btnText = document.getElementById('admin-btn-text');
-  const btnIcon = document.getElementById('admin-icon');
-  const addBtn = document.getElementById('admin-add-btn');
-  const adminBadge = document.getElementById('profile-admin-badge');
-  const adminReportsSection = document.getElementById('admin-reports-section');
-
-  if(isAdmin) {
-    if(btnText) btnText.textContent = "Admin (Aktif)";
-    if(btnIcon) btnIcon.className = "ph-bold ph-shield-check text-emerald-500 text-base";
-    if(addBtn) addBtn.classList.remove('hidden');
-    if(adminBadge) adminBadge.classList.remove('hidden');
-    if(adminReportsSection) adminReportsSection.classList.remove('hidden');
-    
-    // Muat laporan khusus admin
-    if (typeof loadAdminReports === 'function') {
-      loadAdminReports();
+    window.handleAvatarUpload = function(e) {
+      const file = e.target.files[0];
+      if(file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) { tempAvatarBase64 = evt.target.result; };
+        reader.readAsDataURL(file);
+      }
     }
-  } else {
-    if(btnText) btnText.textContent = "Admin";
-    if(btnIcon) btnIcon.className = "ph-bold ph-lock-key text-slate-400";
-    if(addBtn) addBtn.classList.add('hidden');
-    if(adminBadge) adminBadge.classList.add('hidden');
-    if(adminReportsSection) adminReportsSection.classList.add('hidden');
-  }
-  
-  if (typeof renderBooks === 'function') renderBooks();
-}
 
-function renderCategoryChips() {
-  document.getElementById('category-chips').innerHTML = categories.map(cat => `
-    <button onclick="setCategory('${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all ${selectedCategory === cat ? 'bg-emerald-600 text-white shadow-md' : 'bg-white dark:bg-slate-900 border'}">
-      ${cat}
-    </button>
-  `).join('');
-}
+    window.saveUserProfile = async function(e) {
+      e.preventDefault();
+      if(!currentUser) return;
 
-window.setCategory = function(cat) { selectedCategory = cat; renderCategoryChips(); renderBooks(); }
-window.toggleFavoriteFilter = function() {
-  onlyFavorites = !onlyFavorites;
-  renderBooks();
-}
+      const newName = document.getElementById('edit-display-name').value.trim();
+      const urlAvatar = document.getElementById('edit-avatar-url').value.trim();
+      const newBio = document.getElementById('edit-bio').value.trim();
+      const finalPhoto = tempAvatarBase64 || urlAvatar || currentUser.photoURL;
 
-window.renderBooks = function() {
-  const grid = document.getElementById('books-grid');
-  const empty = document.getElementById('empty-katalog');
-  const query = document.getElementById('search-input').value.toLowerCase();
+      try {
+        await updateProfile(currentUser, {
+          displayName: newName,
+          photoURL: finalPhoto
+        });
 
-  const filtered = books.filter(b => {
-    const matchesCat = selectedCategory === 'Semua' || b.category === selectedCategory;
-    const matchesSearch = b.title.toLowerCase().includes(query) || b.author.toLowerCase().includes(query);
-    const matchesFav = onlyFavorites ? bookmarks.includes(b.id) : true;
-    return matchesCat && matchesSearch && matchesFav;
-  });
+        const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+        await setDoc(doc(db, "users", currentUser.uid), {
+          bio: newBio,
+          displayName: newName,
+          email: currentUser.email,
+          photoURL: finalPhoto
+        }, { merge: true });
 
-  if(filtered.length === 0) { grid.innerHTML = ''; empty.classList.remove('hidden'); return; }
-  empty.classList.add('hidden');
+        showToast("Profil & Bio berhasil diperbarui!");
+        updateUserProfileUI(currentUser);
+      } catch (err) {
+        console.error(err);
+        showToast("Gagal memperbarui profil.");
+      }
+    }
 
-  grid.innerHTML = filtered.map(b => {
-    const isFav = bookmarks.includes(b.id);
-    const bookRev = reviews[b.id] || [];
-    let avg = 4.8;
-    if(bookRev.length > 0) avg = (bookRev.reduce((acc, r) => acc + parseInt(r.rating), 0) / bookRev.length).toFixed(1);
+    window.loadAdminReports = async function() {
+      const container = document.getElementById('reports-list-container');
+      const badge = document.getElementById('reports-count-badge');
+      const section = document.getElementById('admin-reports-section');
 
-    return `
-      <div class="group relative bg-white dark:bg-slate-900 rounded-2xl border overflow-hidden flex flex-col justify-between hover:shadow-lg transition-all">
-        <div class="cursor-pointer" onclick="openBookDetail('${b.id}')">
-          <div class="relative h-44 sm:h-56 bg-slate-100 overflow-hidden">
-            <img src="${b.cover}" alt="${b.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-            <span class="absolute top-2 left-2 px-2 py-0.5 bg-slate-900/80 text-white text-[9px] font-bold rounded-md">${b.category}</span>
-            <button onclick="event.stopPropagation(); toggleBookmark('${b.id}')" class="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 dark:bg-slate-900/80 text-slate-400">
-              <i class="${isFav ? 'ph-fill ph-star text-amber-400' : 'ph-bold ph-star'} text-xs"></i>
-            </button>
-          </div>
-          <div class="p-3 space-y-1">
-            <h3 class="font-bold text-xs sm:text-sm line-clamp-1">${b.title}</h3>
-            <p class="text-[11px] text-slate-500 line-clamp-1">${b.author}</p>
-          </div>
-        </div>
-        <div class="p-3 pt-0 flex items-center justify-between border-t mt-1 text-xs">
-          <span class="font-bold text-amber-500">★ ${avg}</span>
-          <div class="flex items-center gap-1">
-            ${isAdmin ? `
-              <button onclick="event.stopPropagation(); openEditBookModal('${b.id}')" class="p-1 text-slate-400 hover:text-amber-500" title="Edit Buku">
-                <i class="ph-bold ph-pencil-simple text-xs"></i>
+      if (!isAdmin || !container) {
+        if(section) section.classList.add('hidden');
+        return;
+      }
+
+      section.classList.remove('hidden');
+
+      try {
+        const snap = await getDocs(collection(db, "reports"));
+        const reportsList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        if(badge) badge.textContent = reportsList.length;
+
+        if (reportsList.length === 0) {
+          container.innerHTML = '<p class="text-xs text-slate-400 italic">Tidak ada laporan konten melanggar saat ini.</p>';
+          return;
+        }
+
+        container.innerHTML = reportsList.map(rep => `
+          <div class="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-rose-200 dark:border-rose-900/40 text-xs space-y-1.5 shadow-sm">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-rose-600 uppercase text-[10px] tracking-wider">[${rep.type || 'Laporan'}]</span>
+              <span class="text-[10px] text-slate-400">${rep.date || ''}</span>
+            </div>
+            <p class="text-slate-700 dark:text-slate-300 font-medium">Alasan: "<span class="italic text-rose-500">${rep.reason}</span>"</p>
+            <div class="p-2 bg-slate-50 dark:bg-slate-800 rounded-xl text-[11px] text-slate-500 truncate">
+              Snippet: "${rep.snippet || 'Detail konten'}"
+            </div>
+            <div class="flex justify-end gap-2 pt-1">
+              <button onclick="dismissReport('${rep.id}')" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-[10px] font-bold hover:bg-slate-200">
+                Abaikan
               </button>
-              <button onclick="event.stopPropagation(); deleteBook('${b.id}')" class="p-1 text-slate-400 hover:text-rose-500" title="Hapus Buku">
-                <i class="ph-bold ph-trash text-xs"></i>
+              <button onclick="handleReportDeleteContent('${rep.type}', '${rep.itemId}', '${rep.id}')" class="px-2.5 py-1 bg-rose-600 text-white rounded-lg text-[10px] font-bold hover:bg-rose-700">
+                Hapus Konten
               </button>
-            ` : ''}
-            <button onclick="openBookDetail('${b.id}')" class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950 text-emerald-600 font-bold text-[10px] rounded-lg">Detail</button>
+            </div>
           </div>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-window.toggleBookmark = function(bookId) {
-  if(bookmarks.includes(bookId)) bookmarks = bookmarks.filter(id => id !== bookId);
-  else bookmarks.push(bookId);
-  localStorage.setItem('x1_bookmarks', JSON.stringify(bookmarks));
-  renderBooks();
-  if(selectedBookId === bookId) {
-    document.getElementById('detail-fav-icon').className = bookmarks.includes(selectedBookId) ? 'ph-fill ph-star text-amber-400 text-lg' : 'ph-bold ph-star text-slate-400 text-lg';
-  }
-}
-
-window.openBookDetail = function(bookId, updateHash = true) {
-  selectedBookId = bookId;
-  const book = books.find(b => b.id === bookId);
-  if(!book) return;
-
-  document.getElementById('detail-title').textContent = book.title;
-  document.getElementById('detail-author').textContent = 'Penulis: ' + book.author;
-  document.getElementById('detail-category').textContent = book.category;
-  document.getElementById('detail-description').textContent = book.description;
-  document.getElementById('detail-cover').src = book.cover;
-  document.getElementById('detail-pages-count').textContent = (book.pages ? book.pages.length : 1);
-
-  document.getElementById('detail-fav-icon').className = bookmarks.includes(bookId) ? 'ph-fill ph-star text-amber-400 text-lg' : 'ph-bold ph-star text-slate-400 text-lg';
-
-  renderReviewsAndRating(bookId);
-  renderComments(bookId);
-  navigateTo('detail', updateHash);
-}
-
-window.deleteComment = async function(commentId) {
-  if (!confirm('Yakin ingin menghapus komentar ini?')) return;
-
-  try {
-    await deleteDoc(doc(db, "comments", commentId));
-    showToast('Komentar berhasil dihapus.');
-    await loadAllDataFromFirestore();
-    openBookDetail(selectedBookId);
-  } catch (err) {
-    console.error(err);
-    showToast('Gagal menghapus komentar.');
-  }
-}
-
-window.deleteReview = async function(reviewId) {
-  if (!confirm('Yakin ingin menghapus ulasan ini?')) return;
-
-  try {
-    await deleteDoc(doc(db, "reviews", reviewId));
-    showToast('Ulasan berhasil dihapus.');
-    await loadAllDataFromFirestore();
-    openBookDetail(selectedBookId);
-  } catch (err) {
-    console.error(err);
-    showToast('Gagal menghapus ulasan.');
-  }
-}
-
-window.submitReview = async function(e) {
-  e.preventDefault();
-  
-  requireAuth(async () => {
-    const rating = document.getElementById('review-rating').value;
-    const text = document.getElementById('review-text').value.trim();
-
-    if (containsBadWords(text)) {
-      alert("⚠️ Peringatan: Ulasan mengandung kata-kata yang tidak sopan! Harap gunakan bahasa yang baik dan bijak.");
-      return;
+        `).join('');
+      } catch(err) {
+        console.error("Gagal memuat laporan:", err);
+      }
     }
-      
-    const name = currentUser.displayName || currentUser.email.split('@')[0];
 
-    const newRev = { 
-      bookId: selectedBookId, 
-      name: name, 
-      userId: currentUser.uid,
-      rating: rating, 
-      text: text, 
-      date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) 
+    window.dismissReport = async function(reportId) {
+      try {
+        await deleteDoc(doc(db, "reports", reportId));
+        showToast('Laporan diabaikan.');
+        loadAdminReports();
+      } catch(err) {
+        showToast('Gagal menghapus laporan.');
+      }
+    }
+
+    window.handleReportDeleteContent = async function(type, itemId, reportId) {
+      if(!currentUser) {
+        alert("Akses ditolak!");
+        return;
+      }
+      try {
+        const adminDoc = await getDoc(doc(db, "admins", currentUser.uid));
+        if (!adminDoc.exists()) {
+          alert("⚠️ Akses ditolak! Akun Anda bukan Admin terverifikasi.");
+          return;
+        }
+
+        if(!confirm('Hapus konten yang dilaporkan ini?')) return;
+        
+        let collectionName = "comments";
+        if(type === 'review') collectionName = "reviews";
+        if(type === 'journal') collectionName = "journals";
+
+        await deleteDoc(doc(db, collectionName, itemId));
+        await deleteDoc(doc(db, "reports", reportId));
+
+        showToast('Konten melanggar & laporan berhasil dihapus!');
+        await loadAllDataFromFirestore();
+        loadAdminReports();
+      } catch(err) {
+        console.error(err);
+        showToast('Gagal menghapus konten.');
+      }
+    }
+
+    window.navigateTo = function(pageView, updateHash = true) {
+      document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
+      const target = document.getElementById(`view-${pageView}`);
+      if(target) target.classList.remove('hidden');
+
+      if (updateHash) {
+        window.location.hash = pageView;
+      }
+
+      document.querySelectorAll('.nav-desk-btn').forEach(btn => {
+        btn.className = "nav-desk-btn px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900";
+      });
+      const deskActive = document.getElementById(`nav-desk-${pageView}`);
+      if(deskActive) deskActive.className = "nav-desk-btn px-4 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm";
+
+      document.querySelectorAll('.nav-mob-btn').forEach(btn => {
+        btn.classList.remove('text-emerald-600');
+        btn.classList.add('text-slate-400');
+      });
+      const mobActive = document.getElementById(`nav-mob-${pageView}`);
+      if(mobActive) {
+        mobActive.classList.remove('text-slate-400');
+        mobActive.classList.add('text-emerald-600');
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    try {
-      await addDoc(collection(db, "reviews"), newRev);
-      showToast('Ulasan berhasil dikirim ke Cloud!');
-      document.getElementById('review-text').value = '';
-      await loadAllDataFromFirestore();
-      openBookDetail(selectedBookId);
-    } catch(err) {
-      showToast('Gagal mengirim ulasan.');
-    }
-  });
-}
-
-window.reportItem = async function(type, itemId, contentSnippet) {
-  const reason = prompt("Sampaikan alasan kamu melaporkan postingan ini ke Admin:");
-  if (!reason) return;
-
-  try {
-    await addDoc(collection(db, "reports"), {
-      type: type,
-      itemId: itemId,
-      snippet: contentSnippet,
-      reason: reason,
-      date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+    window.addEventListener('hashchange', () => {
+      const hash = window.location.hash.substring(1) || 'katalog';
+      if(hash.startsWith('detail-')) {
+        const bookId = hash.replace('detail-', '');
+        openBookDetail(bookId, false);
+      } else {
+        navigateTo(hash, false);
+      }
     });
-    showToast('Laporan berhasil dikirim ke Admin. Terima kasih!');
-  } catch(err) {
-    showToast('Gagal mengirim laporan.');
-  }
-}
 
-function renderReviewsAndRating(bookId) {
-  const bookRev = reviews[bookId] || [];
-  const container = document.getElementById('reviews-list');
-  
-  let avg = 4.8;
-  if (bookRev.length > 0) avg = (bookRev.reduce((acc, r) => acc + parseInt(r.rating), 0) / bookRev.length).toFixed(1);
-  document.getElementById('detail-rating-num').textContent = `★ ${avg} (${bookRev.length})`;
+    window.toggleDarkMode = function() {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('x1_theme', 'light');
+        showToast('Mode Terang diaktifkan');
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('x1_theme', 'dark');
+        showToast('Mode Gelap diaktifkan');
+      }
+    }
 
-  if (bookRev.length === 0) { 
-    container.innerHTML = '<p class="text-xs text-slate-400 italic">Belum ada ulasan.</p>'; 
-    return; 
-  }
+    function updateAdminUI() {
+      const addBtn = document.getElementById('admin-add-btn');
+      const adminBadge = document.getElementById('profile-admin-badge');
+      const adminReportsSection = document.getElementById('admin-reports-section');
 
-  container.innerHTML = bookRev.map(r => {
-    const isOwnerOrAdmin = isAdmin || (currentUser && currentUser.uid === r.userId);
+      if(isAdmin) {
+        if(addBtn) addBtn.classList.remove('hidden');
+        if(adminBadge) {
+          adminBadge.textContent = userRole;
+          adminBadge.classList.remove('hidden');
+        }
+        if(adminReportsSection) adminReportsSection.classList.remove('hidden');
+        if (typeof loadAdminReports === 'function') {
+          loadAdminReports();
+        }
+      } else {
+        if(addBtn) addBtn.classList.add('hidden');
+        if(adminBadge) adminBadge.classList.add('hidden');
+        if(adminReportsSection) adminReportsSection.classList.add('hidden');
+      }
+      if (typeof renderBooks === 'function') renderBooks();
+    }
 
-    return `
-      <div class="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 text-xs space-y-1">
-        <div class="flex justify-between items-center font-bold">
-          <span class="text-emerald-600 dark:text-emerald-400">${r.name}</span>
-          <div class="flex items-center gap-2">
-            <span class="text-amber-500">${'★'.repeat(r.rating)}</span>
-            ${isOwnerOrAdmin ? `
-              <button onclick="deleteReview('${r.id}')" class="text-rose-500 hover:underline text-[11px] font-bold" title="Hapus Ulasan">
-                <i class="ph-bold ph-trash"></i> Hapus
-              </button>
-            ` : ''}
+    function renderCategoryChips() {
+      document.getElementById('category-chips').innerHTML = categories.map(cat => `
+        <button onclick="setCategory('${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all ${selectedCategory === cat ? 'bg-emerald-600 text-white shadow-md' : 'bg-white dark:bg-slate-900 border'}">
+          ${cat}
+        </button>
+      `).join('');
+    }
+
+    window.setCategory = function(cat) { selectedCategory = cat; renderCategoryChips(); renderBooks(); }
+    window.toggleFavoriteFilter = function() {
+      onlyFavorites = !onlyFavorites;
+      renderBooks();
+    }
+
+    window.renderBooks = function() {
+      const grid = document.getElementById('books-grid');
+      const empty = document.getElementById('empty-katalog');
+      const query = document.getElementById('search-input').value.toLowerCase();
+
+      const filtered = books.filter(b => {
+        const matchesCat = selectedCategory === 'Semua' || b.category === selectedCategory;
+        const matchesSearch = b.title.toLowerCase().includes(query) || b.author.toLowerCase().includes(query);
+        const matchesFav = onlyFavorites ? bookmarks.includes(b.id) : true;
+        return matchesCat && matchesSearch && matchesFav;
+      });
+
+      if(filtered.length === 0) { grid.innerHTML = ''; empty.classList.remove('hidden'); return; }
+      empty.classList.add('hidden');
+
+      grid.innerHTML = filtered.map(b => {
+        const isFav = bookmarks.includes(b.id);
+        const bookRev = reviews[b.id] || [];
+        let avg = 4.8;
+        if(bookRev.length > 0) avg = (bookRev.reduce((acc, r) => acc + parseInt(r.rating), 0) / bookRev.length).toFixed(1);
+
+        return `
+          <div class="group relative bg-white dark:bg-slate-900 rounded-2xl border overflow-hidden flex flex-col justify-between hover:shadow-lg transition-all">
+            <div class="cursor-pointer" onclick="openBookDetail('${b.id}')">
+              <div class="relative h-44 sm:h-56 bg-slate-100 overflow-hidden">
+                <img src="${b.cover}" alt="${b.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                <span class="absolute top-2 left-2 px-2 py-0.5 bg-slate-900/80 text-white text-[9px] font-bold rounded-md">${b.category}</span>
+                <button onclick="event.stopPropagation(); toggleBookmark('${b.id}')" class="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 dark:bg-slate-900/80 text-slate-400">
+                  <i class="${isFav ? 'ph-fill ph-star text-amber-400' : 'ph-bold ph-star'} text-xs"></i>
+                </button>
+              </div>
+              <div class="p-3 space-y-1">
+                <h3 class="font-bold text-xs sm:text-sm line-clamp-1">${b.title}</h3>
+                <p class="text-[11px] text-slate-500 line-clamp-1">${b.author}</p>
+              </div>
+            </div>
+            <div class="p-3 pt-0 flex items-center justify-between border-t mt-1 text-xs">
+              <span class="font-bold text-amber-500">★ ${avg}</span>
+              <div class="flex items-center gap-1">
+                ${isAdmin ? `
+                  <button onclick="event.stopPropagation(); openEditBookModal('${b.id}')" class="p-1 text-slate-400 hover:text-amber-500" title="Edit Buku">
+                    <i class="ph-bold ph-pencil-simple text-xs"></i>
+                  </button>
+                  <button onclick="event.stopPropagation(); deleteBook('${b.id}')" class="p-1 text-slate-400 hover:text-rose-500" title="Hapus Buku">
+                    <i class="ph-bold ph-trash text-xs"></i>
+                  </button>
+                ` : ''}
+                <button onclick="openBookDetail('${b.id}')" class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950 text-emerald-600 font-bold text-[10px] rounded-lg">Detail</button>
+              </div>
+            </div>
           </div>
-        </div>
-        <p class="text-slate-600 dark:text-slate-300">${r.text}</p>
-      </div>
-    `;
-  }).join('');
-}
-    
-window.submitComment = async function(e) {
-  e.preventDefault();
-  
-  requireAuth(async () => {
-    let text = document.getElementById('comment-text').value.trim();
-
-    if (containsBadWords(text)) {
-      alert("⚠️ Peringatan: Komentar mengandung kata-kata yang tidak sopan! Harap gunakan bahasa yang baik dan bijak.");
-      return;
+        `;
+      }).join('');
     }
 
-    const now = Date.now();
-    if (now - lastCommentTime < 60 * 1000) {
-      document.getElementById('comment-cooldown-notice').textContent = 'Tunggu 1 menit sebelum komentar lagi (Anti-Spam).';
-      return;
+    window.toggleBookmark = function(bookId) {
+      if(bookmarks.includes(bookId)) bookmarks = bookmarks.filter(id => id !== bookId);
+      else bookmarks.push(bookId);
+      localStorage.setItem('x1_bookmarks', JSON.stringify(bookmarks));
+      renderBooks();
+      if(selectedBookId === bookId) {
+        document.getElementById('detail-fav-icon').className = bookmarks.includes(selectedBookId) ? 'ph-fill ph-star text-amber-400 text-lg' : 'ph-bold ph-star text-slate-400 text-lg';
+      }
     }
-    document.getElementById('comment-cooldown-notice').textContent = '';
 
-    const name = currentUser.displayName || currentUser.email.split('@')[0];
+    window.openBookDetail = function(bookId, updateHash = true) {
+      selectedBookId = bookId;
+      const book = books.find(b => b.id === bookId);
+      if(!book) return;
 
-    const newCom = { 
-      bookId: selectedBookId, 
-      name: name, 
-      userId: currentUser.uid,
-      text: text, 
-      date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }), 
-      replies: [] 
-    };
+      document.getElementById('detail-title').textContent = book.title;
+      document.getElementById('detail-author').textContent = 'Penulis: ' + book.author;
+      document.getElementById('detail-category').textContent = book.category;
+      document.getElementById('detail-description').textContent = book.description;
+      document.getElementById('detail-cover').src = book.cover;
+      document.getElementById('detail-pages-count').textContent = (book.pages ? book.pages.length : 1);
 
-    try {
-      await addDoc(collection(db, "comments"), newCom);
-      lastCommentTime = Date.now();
-      document.getElementById('comment-text').value = '';
-      showToast('Komentar terkirim ke Cloud!');
-      await loadAllDataFromFirestore();
-      openBookDetail(selectedBookId);
-    } catch(err) {
-      showToast('Gagal mengirim komentar.');
+      const shareableUrl = window.location.href.split('#')[0] + '#detail-' + bookId;
+      document.getElementById('detail-qrcode').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(shareableUrl)}`;
+
+      document.getElementById('detail-fav-icon').className = bookmarks.includes(bookId) ? 'ph-fill ph-star text-amber-400 text-lg' : 'ph-bold ph-star text-slate-400 text-lg';
+
+      renderReviewsAndRating(bookId);
+      renderComments(bookId);
+      navigateTo('detail', updateHash);
     }
-  });
-}
 
-function renderComments(bookId) {
-  const bookCom = comments[bookId] || [];
-  const container = document.getElementById('comments-list');
-  if (bookCom.length === 0) { 
-    container.innerHTML = '<p class="text-xs text-slate-400 italic">Belum ada diskusi.</p>'; 
-    return; 
-  }
+    window.deleteComment = async function(commentId) {
+      if (!confirm('Yakin ingin menghapus komentar ini?')) return;
+      try {
+        await deleteDoc(doc(db, "comments", commentId));
+        showToast('Komentar berhasil dihapus.');
+        await loadAllDataFromFirestore();
+        openBookDetail(selectedBookId);
+      } catch (err) {
+        console.error(err);
+        showToast('Gagal menghapus komentar.');
+      }
+    }
 
-  container.innerHTML = bookCom.map(c => {
-    const isOwnerOrAdmin = isAdmin || (currentUser && currentUser.uid === c.userId);
+    window.deleteReview = async function(reviewId) {
+      if (!confirm('Yakin ingin menghapus ulasan ini?')) return;
+      try {
+        await deleteDoc(doc(db, "reviews", reviewId));
+        showToast('Ulasan berhasil dihapus.');
+        await loadAllDataFromFirestore();
+        openBookDetail(selectedBookId);
+      } catch (err) {
+        console.error(err);
+        showToast('Gagal menghapus ulasan.');
+      }
+    }
 
-    return `
-      <div class="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 text-xs space-y-2">
-        <div class="flex justify-between items-center font-bold">
-          <span class="text-emerald-600 dark:text-emerald-400">${c.name}</span>
-          <div class="flex items-center gap-2">
-            <span class="text-[10px] text-slate-400 font-normal">${c.date}</span>
-            <button onclick="reportItem('comment', '${c.id}', '${c.text.substring(0, 30)}...')" class="text-[10px] text-slate-400 hover:text-rose-500 font-semibold" title="Laporkan Komentar">
-                <i class="ph-bold ph-warning text-xs"></i> Laporkan
-            </button>
-            ${isOwnerOrAdmin ? `
-              <button onclick="deleteComment('${c.id}')" class="text-rose-500 hover:underline text-[11px] font-bold" title="Hapus Komentar">
-                <i class="ph-bold ph-trash"></i> Hapus
-              </button>
-            ` : ''}
+    window.submitReview = async function(e) {
+      e.preventDefault();
+      requireAuth(async () => {
+        const rating = document.getElementById('review-rating').value;
+        const text = document.getElementById('review-text').value.trim();
+
+        if (containsBadWords(text)) {
+          alert("⚠️ Peringatan: Ulasan mengandung kata-kata yang tidak sopan! Harap gunakan bahasa yang baik dan bijak.");
+          return;
+        }
+          
+        const name = currentUser.displayName || currentUser.email.split('@')[0];
+        const newRev = { 
+          bookId: selectedBookId, 
+          name: name, 
+          userId: currentUser.uid,
+          rating: rating, 
+          text: text, 
+          date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) 
+        };
+
+        try {
+          await addDoc(collection(db, "reviews"), newRev);
+          showToast('Ulasan berhasil dikirim ke Cloud!');
+          document.getElementById('review-text').value = '';
+          await loadAllDataFromFirestore();
+          openBookDetail(selectedBookId);
+        } catch(err) {
+          showToast('Gagal mengirim ulasan.');
+        }
+      });
+    }
+
+    window.reportItem = async function(type, itemId, contentSnippet) {
+      const reason = prompt("Sampaikan alasan kamu melaporkan postingan ini ke Admin:");
+      if (!reason) return;
+
+      try {
+        await addDoc(collection(db, "reports"), {
+          type: type,
+          itemId: itemId,
+          snippet: contentSnippet,
+          reason: reason,
+          date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+        });
+        showToast('Laporan berhasil dikirim ke Admin. Terima kasih!');
+      } catch(err) {
+        showToast('Gagal mengirim laporan.');
+      }
+    }
+
+    function renderReviewsAndRating(bookId) {
+      const bookRev = reviews[bookId] || [];
+      const container = document.getElementById('reviews-list');
+      
+      let avg = 4.8;
+      if (bookRev.length > 0) avg = (bookRev.reduce((acc, r) => acc + parseInt(r.rating), 0) / bookRev.length).toFixed(1);
+      document.getElementById('detail-rating-num').textContent = `★ ${avg} (${bookRev.length})`;
+
+      if (bookRev.length === 0) { 
+        container.innerHTML = '<p class="text-xs text-slate-400 italic">Belum ada ulasan.</p>'; 
+        return; 
+      }
+
+      container.innerHTML = bookRev.map(r => {
+        const isOwnerOrAdmin = isAdmin || (currentUser && currentUser.uid === r.userId);
+        return `
+          <div class="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 text-xs space-y-1">
+            <div class="flex justify-between items-center font-bold">
+              <span class="text-emerald-600 dark:text-emerald-400">${r.name}</span>
+              <div class="flex items-center gap-2">
+                <span class="text-amber-500">${'★'.repeat(r.rating)}</span>
+                ${isOwnerOrAdmin ? `
+                  <button onclick="deleteReview('${r.id}')" class="text-rose-500 hover:underline text-[11px] font-bold" title="Hapus Ulasan">
+                    <i class="ph-bold ph-trash"></i> Hapus
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+            <p class="text-slate-600 dark:text-slate-300">${r.text}</p>
           </div>
+        `;
+      }).join('');
+    }
+        
+    window.submitComment = async function(e) {
+      e.preventDefault();
+      requireAuth(async () => {
+        let text = document.getElementById('comment-text').value.trim();
+
+        if (containsBadWords(text)) {
+          alert("⚠️ Peringatan: Komentar mengandung kata-kata yang tidak sopan! Harap gunakan bahasa yang baik dan bijak.");
+          return;
+        }
+
+        const now = Date.now();
+        if (now - lastCommentTime < 10 * 1000) {
+          document.getElementById('comment-cooldown-notice').textContent = 'Tunggu 10 detik sebelum komentar lagi.';
+          return;
+        }
+        document.getElementById('comment-cooldown-notice').textContent = '';
+
+        const name = currentUser.displayName || currentUser.email.split('@')[0];
+        const newCom = { 
+          bookId: selectedBookId, 
+          name: name, 
+          userId: currentUser.uid,
+          text: text, 
+          date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }), 
+          replies: [] 
+        };
+
+        try {
+          await addDoc(collection(db, "comments"), newCom);
+          lastCommentTime = Date.now();
+          document.getElementById('comment-text').value = '';
+          showToast('Komentar terkirim ke Cloud!');
+          await loadAllDataFromFirestore();
+          openBookDetail(selectedBookId);
+        } catch(err) {
+          showToast('Gagal mengirim komentar.');
+        }
+      });
+    }
+
+    function renderComments(bookId) {
+      const bookCom = comments[bookId] || [];
+      const container = document.getElementById('comments-list');
+      if (bookCom.length === 0) { 
+        container.innerHTML = '<p class="text-xs text-slate-400 italic">Belum ada diskusi.</p>'; 
+        return; 
+      }
+
+      container.innerHTML = bookCom.map(c => {
+        const isOwnerOrAdmin = isAdmin || (currentUser && currentUser.uid === c.userId);
+        return `
+          <div class="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 text-xs space-y-2">
+            <div class="flex justify-between items-center font-bold">
+              <span class="text-emerald-600 dark:text-emerald-400">${c.name}</span>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] text-slate-400 font-normal">${c.date}</span>
+                <button onclick="reportItem('comment', '${c.id}', '${c.text.substring(0, 30)}...')" class="text-[10px] text-slate-400 hover:text-rose-500 font-semibold" title="Laporkan Komentar">
+                    <i class="ph-bold ph-warning text-xs"></i> Laporkan
+                </button>
+                ${isOwnerOrAdmin ? `
+                  <button onclick="deleteComment('${c.id}')" class="text-rose-500 hover:underline text-[11px] font-bold" title="Hapus Komentar">
+                    <i class="ph-bold ph-trash"></i> Hapus
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+            <p class="text-slate-600 dark:text-slate-300">${c.text}</p>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.openReaderPage = function() {
+      readerCurrentPage = 0;
+      const savedReaderTheme = localStorage.getItem('x1_reader_theme') || 'light';
+      applyReaderTheme(savedReaderTheme);
+      renderReaderContent();
+      navigateTo('reader');
+    }
+
+    function renderReaderContent() {
+      const book = books.find(b => b.id === selectedBookId);
+      if(!book) return;
+
+      const textCanvas = document.getElementById('reader-body-text');
+      const pdfContainer = document.getElementById('reader-pdf-container');
+      const paginationControls = document.getElementById('reader-pagination-footer');
+
+      if (book.pdfUrl) {
+        textCanvas.classList.add('hidden');
+        if(paginationControls) paginationControls.classList.add('hidden');
+        
+        if(!pdfContainer) {
+          const canvas = document.getElementById('reader-canvas');
+          const div = document.createElement('div');
+          div.id = 'reader-pdf-container';
+          div.className = 'w-full h-[70vh] flex flex-col';
+          div.innerHTML = `<iframe src="${book.pdfUrl}#toolbar=0" class="w-full h-full rounded-xl border shadow-inner"></iframe>`;
+          canvas.prepend(div);
+        } else {
+          pdfContainer.classList.remove('hidden');
+          pdfContainer.querySelector('iframe').src = book.pdfUrl + '#toolbar=0';
+        }
+      } else {
+        if(pdfContainer) pdfContainer.classList.add('hidden');
+        textCanvas.classList.remove('hidden');
+        if(paginationControls) paginationControls.classList.remove('hidden');
+
+        const pages = book.pages || [`Halaman 1: ${book.description}`];
+        document.getElementById('reader-curr-page').textContent = readerCurrentPage + 1;
+        document.getElementById('reader-total-page').textContent = pages.length;
+        
+        textCanvas.innerHTML = pages[readerCurrentPage];
+        document.getElementById('reader-prev-btn').disabled = readerCurrentPage === 0;
+        document.getElementById('reader-next-btn').disabled = readerCurrentPage === pages.length - 1;
+      }
+    }
+
+    window.turnReaderPage = function(delta) {
+      const book = books.find(b => b.id === selectedBookId);
+      const pages = book.pages || [1];
+      const newPage = readerCurrentPage + delta;
+      if(newPage >= 0 && newPage < pages.length) { readerCurrentPage = newPage; renderReaderContent(); }
+    }
+
+    window.adjustFontSize = function(delta) {
+      readerFontSize = Math.max(12, Math.min(28, readerFontSize + delta));
+      document.getElementById('reader-body-text').style.fontSize = `${readerFontSize}px`;
+    }
+
+    window.setReaderTheme = function(theme) {
+      localStorage.setItem('x1_reader_theme', theme);
+      applyReaderTheme(theme);
+    }
+
+    function applyReaderTheme(theme) {
+      const c = document.getElementById('reader-canvas');
+      if(!c) return;
+      if (theme === 'sepia') {
+        c.className = "bg-[#fbf0d9] text-amber-950 rounded-2xl p-5 sm:p-10 border border-amber-200 shadow-md min-h-[60vh] flex flex-col justify-between transition-all";
+      } else if (theme === 'dark') {
+        c.className = "bg-slate-950 text-slate-200 rounded-2xl p-5 sm:p-10 border border-slate-800 shadow-md min-h-[60vh] flex flex-col justify-between transition-all";
+      } else {
+        c.className = "bg-white text-slate-800 rounded-2xl p-5 sm:p-10 border border-slate-200 shadow-md min-h-[60vh] flex flex-col justify-between transition-all";
+      }
+    }
+
+    window.openAddBookModal = function() {
+      document.getElementById('modal-book-title-header').textContent = "Tambah Buku Baru";
+      document.getElementById('form-book-id').value = "";
+      document.getElementById('form-book-title').value = "";
+      document.getElementById('form-book-author').value = "";
+      document.getElementById('form-book-category').value = "Fiksi";
+      document.getElementById('form-book-desc').value = "";
+      document.getElementById('form-book-cover-url').value = "";
+      document.getElementById('form-book-content').value = "";
+      document.getElementById('form-book-pdf').value = "";
+      tempCoverBase64 = "";
+      document.getElementById('add-book-modal').classList.remove('hidden');
+    }
+
+    window.openEditBookModal = function(bookId) {
+      const book = books.find(b => b.id === bookId);
+      if(!book) return;
+
+      document.getElementById('modal-book-title-header').textContent = "Edit Data Buku";
+      document.getElementById('form-book-id').value = book.id;
+      document.getElementById('form-book-title').value = book.title || "";
+      document.getElementById('form-book-author').value = book.author || "";
+      document.getElementById('form-book-category').value = book.category || "Fiksi";
+      document.getElementById('form-book-desc').value = book.description || "";
+      document.getElementById('form-book-cover-url').value = book.cover || "";
+      document.getElementById('form-book-pdf').value = book.pdfUrl || "";
+      
+      const pagesText = book.pages ? book.pages.join(' || ') : "";
+      document.getElementById('form-book-content').value = pagesText;
+      tempCoverBase64 = "";
+      document.getElementById('add-book-modal').classList.remove('hidden');
+    }
+
+    window.closeAddBookModal = function() {
+      document.getElementById('add-book-modal').classList.add('hidden');
+    }
+
+    window.handleCoverFile = function(e) {
+      const file = e.target.files[0];
+      if(file) {
+        const r = new FileReader();
+        r.onload = function(evt) { tempCoverBase64 = evt.target.result; };
+        r.readAsDataURL(file);
+      }
+    }
+
+    window.saveBookEntry = async function(e) {
+      e.preventDefault();
+      const bookId = document.getElementById('form-book-id').value;
+      const title = document.getElementById('form-book-title').value.trim();
+      const author = document.getElementById('form-book-author').value.trim();
+      const category = document.getElementById('form-book-category').value;
+      const description = document.getElementById('form-book-desc').value.trim();
+      const urlCover = document.getElementById('form-book-cover-url').value.trim();
+      const rawContent = document.getElementById('form-book-content').value.trim();
+      const pdfUrl = document.getElementById('form-book-pdf').value.trim();
+
+      const pages = rawContent ? rawContent.split('||').map(p => p.trim()) : ["Halaman 1..."];
+
+      let finalCover = tempCoverBase64 || urlCover;
+      if(!finalCover && bookId) {
+        const existingBook = books.find(b => b.id === bookId);
+        if(existingBook) finalCover = existingBook.cover;
+      }
+      if(!finalCover) finalCover = 'https://placehold.co/400x600/10b981/ffffff?text=Book';
+
+      const bookData = { title, author, category, description, cover: finalCover, pages, pdfUrl };
+
+      try {
+        if(bookId) {
+          const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+          await setDoc(doc(db, "books", bookId), bookData, { merge: true });
+          showToast('Data buku berhasil diperbarui!');
+          closeAddBookModal();
+          await loadAllDataFromFirestore();
+          if(selectedBookId === bookId) openBookDetail(bookId);
+        } else {
+          await addDoc(collection(db, "books"), bookData);
+          showToast('Buku baru berhasil disimpan!');
+          closeAddBookModal();
+          await loadAllDataFromFirestore();
+        }
+      } catch(err) {
+        console.error(err);
+        showToast('Gagal menyimpan data buku.');
+      }
+    }
+
+    window.deleteBook = async function(id) {
+      if(confirm('Hapus buku ini dari database cloud?')) {
+        try {
+          await deleteDoc(doc(db, "books", id));
+          showToast('Buku dihapus.');
+          await loadAllDataFromFirestore();
+        } catch(err) {
+          showToast('Gagal menghapus buku.');
+        }
+      }
+    }
+
+    window.openJournalForm = function() {
+      document.getElementById('j-book').innerHTML = books.map(b => `<option value="${b.title}">${b.title}</option>`).join('');
+      document.getElementById('journal-form').classList.toggle('hidden');
+    }
+
+    window.saveJournalEntry = async function(e) {
+      e.preventDefault();
+      requireAuth(async () => {
+        const text = document.getElementById('j-notes').value.trim();
+        if (containsBadWords(text)) {
+          alert("⚠️ Peringatan: Jurnal mengandung kata-kata yang tidak sopan!");
+          return;
+        }
+
+        const name = currentUser.displayName || currentUser.email.split('@')[0];
+        const newJ = {
+          userId: currentUser.uid,
+          student: name,
+          book: document.getElementById('j-book').value,
+          notes: text,
+          date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+        };
+
+        try {
+          await addDoc(collection(db, "journals"), newJ);
+          showToast('Jurnal tersimpan!');
+          document.getElementById('journal-form').classList.add('hidden');
+          await loadAllDataFromFirestore();
+        } catch(err) {
+          showToast('Gagal simpan jurnal.');
+        }
+      });
+    }
+
+    window.deleteJournal = async function(journalId, journalUserId) {
+      if (!currentUser) return;
+      let userIsAdmin = isAdmin;
+      try {
+        const adminDoc = await getDoc(doc(db, "admins", currentUser.uid));
+        if (adminDoc.exists()) userIsAdmin = true;
+      } catch(e) {}
+
+      const isOwner = currentUser.uid === journalUserId;
+      if (!isOwner && !userIsAdmin) {
+        alert("Akses ditolak! Anda bukan pemilik jurnal atau admin.");
+        return;
+      }
+
+      if (!confirm("Yakin ingin menghapus jurnal ini?")) return;
+      try {
+        await deleteDoc(doc(db, "journals", journalId));
+        showToast("Jurnal berhasil dihapus.");
+        await loadAllDataFromFirestore();
+      } catch(err) {
+        showToast("Gagal menghapus jurnal.");
+      }
+    }
+
+    function renderJournals() {
+      const container = document.getElementById('journal-list');
+      if (journals.length === 0) {
+        container.innerHTML = '<p class="text-xs text-slate-400 italic">Belum ada jurnal.</p>';
+        return;
+      }
+      container.innerHTML = journals.map(j => {
+        const canDelete = currentUser && (currentUser.uid === j.userId || isAdmin);
+        return `
+          <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border text-xs space-y-1">
+            <div class="flex justify-between font-bold">
+              <span>${j.book}</span>
+              <div class="flex items-center gap-2">
+                <span class="text-emerald-600">${j.student}</span>
+                ${canDelete ? `<button onclick="deleteJournal('${j.id}', '${j.userId || ''}')" class="text-rose-500 hover:text-rose-700 font-bold" title="Hapus Jurnal"><i class="ph-bold ph-trash"></i></button>` : ''}
+              </div>
+            </div>
+            <p class="text-slate-600 dark:text-slate-300 italic">"${j.notes}"</p>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderLeaderboard() {
+      const counts = {};
+      journals.forEach(j => { counts[j.student] = (counts[j.student] || 0) + 1; });
+      const sorted = Object.keys(counts).map(s => ({ student: s, count: counts[s] })).sort((a,b) => b.count - a.count);
+      document.getElementById('leaderboard-list').innerHTML = sorted.map((item, idx) => `
+        <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border text-xs">
+          <div class="flex items-center gap-2"><span class="w-6 h-6 rounded bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center">#${idx+1}</span><span class="font-bold">${item.student}</span></div>
+          <span class="font-bold text-emerald-600">${item.count} Jurnal</span>
         </div>
-        <p class="text-slate-600 dark:text-slate-300">${c.text}</p>
-      </div>
-    `;
-  }).join('');
-}
-
-window.openReaderPage = function() {
-  readerCurrentPage = 0;
-  const savedReaderTheme = localStorage.getItem('x1_reader_theme') || 'light';
-  applyReaderTheme(savedReaderTheme);
-  renderReaderContent();
-  navigateTo('reader');
-}
-
-function renderReaderContent() {
-  const book = books.find(b => b.id === selectedBookId);
-  if(!book) return;
-  
-  const pages = book.pages || [`Halaman 1: ${book.description}`];
-  
-  document.getElementById('reader-curr-page').textContent = readerCurrentPage + 1;
-  document.getElementById('reader-total-page').textContent = pages.length;
-  
-  const pageContent = pages[readerCurrentPage];
-  document.getElementById('reader-body-text').innerHTML = pageContent;
-  
-  document.getElementById('reader-prev-btn').disabled = readerCurrentPage === 0;
-  document.getElementById('reader-next-btn').disabled = readerCurrentPage === pages.length - 1;
-}
-
-window.turnReaderPage = function(delta) {
-  const book = books.find(b => b.id === selectedBookId);
-  const pages = book.pages || [1];
-  const newPage = readerCurrentPage + delta;
-  if(newPage >= 0 && newPage < pages.length) { readerCurrentPage = newPage; renderReaderContent(); }
-}
-
-window.adjustFontSize = function(delta) {
-  readerFontSize = Math.max(12, Math.min(28, readerFontSize + delta));
-  document.getElementById('reader-body-text').style.fontSize = `${readerFontSize}px`;
-}
-
-window.setReaderTheme = function(theme) {
-  localStorage.setItem('x1_reader_theme', theme);
-  applyReaderTheme(theme);
-}
-
-function applyReaderTheme(theme) {
-  const c = document.getElementById('reader-canvas');
-  if(!c) return;
-  
-  if (theme === 'sepia') {
-    c.className = "bg-[#fbf0d9] text-amber-950 rounded-2xl p-5 sm:p-10 border border-amber-200 shadow-md min-h-[60vh] flex flex-col justify-between transition-all";
-  } else if (theme === 'dark') {
-    c.className = "bg-slate-950 text-slate-200 rounded-2xl p-5 sm:p-10 border border-slate-800 shadow-md min-h-[60vh] flex flex-col justify-between transition-all";
-  } else {
-    c.className = "bg-white text-slate-800 rounded-2xl p-5 sm:p-10 border border-slate-200 shadow-md min-h-[60vh] flex flex-col justify-between transition-all";
-  }
-}
-
-window.openAddBookModal = function() {
-  document.getElementById('modal-book-title-header').textContent = "Tambah Buku Baru";
-  document.getElementById('form-book-id').value = "";
-  document.getElementById('form-book-title').value = "";
-  document.getElementById('form-book-author').value = "";
-  document.getElementById('form-book-category').value = "Fiksi";
-  document.getElementById('form-book-desc').value = "";
-  document.getElementById('form-book-cover-url').value = "";
-  document.getElementById('form-book-content').value = "";
-  tempCoverBase64 = "";
-  document.getElementById('add-book-modal').classList.remove('hidden');
-}
-
-window.openEditBookModal = function(bookId) {
-  const book = books.find(b => b.id === bookId);
-  if(!book) return;
-
-  document.getElementById('modal-book-title-header').textContent = "Edit Data Buku";
-  document.getElementById('form-book-id').value = book.id;
-  document.getElementById('form-book-title').value = book.title || "";
-  document.getElementById('form-book-author').value = book.author || "";
-  document.getElementById('form-book-category').value = book.category || "Fiksi";
-  document.getElementById('form-book-desc').value = book.description || "";
-  document.getElementById('form-book-cover-url').value = book.cover || "";
-  
-  const pagesText = book.pages ? book.pages.join(' || ') : "";
-  document.getElementById('form-book-content').value = pagesText;
-  
-  tempCoverBase64 = "";
-  document.getElementById('add-book-modal').classList.remove('hidden');
-}
-
-window.closeAddBookModal = function() {
-  document.getElementById('add-book-modal').classList.add('hidden');
-}
-
-window.handleCoverFile = function(e) {
-  const file = e.target.files[0];
-  if(file) {
-    const r = new FileReader();
-    r.onload = function(evt) { tempCoverBase64 = evt.target.result; };
-    r.readAsDataURL(file);
-  }
-}
-
-window.saveBookEntry = async function(e) {
-  e.preventDefault();
-  
-  const bookId = document.getElementById('form-book-id').value;
-  const title = document.getElementById('form-book-title').value.trim();
-  const author = document.getElementById('form-book-author').value.trim();
-  const category = document.getElementById('form-book-category').value;
-  const description = document.getElementById('form-book-desc').value.trim();
-  const urlCover = document.getElementById('form-book-cover-url').value.trim();
-  const rawContent = document.getElementById('form-book-content').value.trim();
-
-  const pages = rawContent ? rawContent.split('||').map(p => p.trim()) : ["Halaman 1..."];
-
-  let finalCover = tempCoverBase64 || urlCover;
-  if(!finalCover && bookId) {
-    const existingBook = books.find(b => b.id === bookId);
-    if(existingBook) finalCover = existingBook.cover;
-  }
-  if(!finalCover) finalCover = 'https://placehold.co/400x600/10b981/ffffff?text=Book';
-
-  const bookData = { title, author, category, description, cover: finalCover, pages };
-
-  try {
-    if(bookId) {
-      const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-      await setDoc(doc(db, "books", bookId), bookData, { merge: true });
-      showToast('Data buku berhasil diperbarui!');
-      closeAddBookModal();
-      await loadAllDataFromFirestore();
-      if(selectedBookId === bookId) openBookDetail(bookId);
-    } else {
-      await addDoc(collection(db, "books"), bookData);
-      showToast('Buku baru berhasil disimpan!');
-      closeAddBookModal();
-      await loadAllDataFromFirestore();
-    }
-  } catch(err) {
-    console.error(err);
-    showToast('Gagal menyimpan data buku.');
-  }
-}
-
-window.deleteBook = async function(id) {
-  if(confirm('Hapus buku ini dari database cloud?')) {
-    try {
-      await deleteDoc(doc(db, "books", id));
-      showToast('Buku dihapus.');
-      await loadAllDataFromFirestore();
-    } catch(err) {
-      showToast('Gagal menghapus buku.');
-    }
-  }
-}
-
-window.openJournalForm = function() {
-  document.getElementById('j-book').innerHTML = books.map(b => `<option value="${b.title}">${b.title}</option>`).join('');
-  document.getElementById('journal-form').classList.toggle('hidden');
-}
-
-window.saveJournalEntry = async function(e) {
-  e.preventDefault();
-  
-  requireAuth(async () => {
-    const text = document.getElementById('j-notes').value.trim();
-    
-    if (containsBadWords(text)) {
-      alert("⚠️ Peringatan: Komentar mengandung kata-kata yang tidak sopan! Harap gunakan bahasa yang baik dan bijak.");
-      return;
+      `).join('');
     }
 
-    const name = currentUser.displayName || currentUser.email.split('@')[0];
+    window.submitRequest = async function(e) {
+      e.preventDefault();
+      requireAuth(async () => {
+        let text = document.getElementById('req-reason').value.trim();
+        if (containsBadWords(text)) {
+          alert("⚠️ Peringatan: Alasan mengandung kata-kata yang tidak sopan!");
+          return;
+        }
 
-    const newJ = {
-      student: name,
-      book: document.getElementById('j-book').value,
-      notes: text,
-      date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
-    };
+        const name = currentUser.displayName || currentUser.email.split('@')[0];
+        const newR = {
+          userId: currentUser.uid,
+          name: name,
+          title: document.getElementById('req-title').value.trim(),
+          reason: text
+        };
 
-    try {
-      await addDoc(collection(db, "journals"), newJ);
-      showToast('Jurnal tersimpan!');
-      document.getElementById('journal-form').classList.add('hidden');
-      await loadAllDataFromFirestore();
-    } catch(err) {
-      showToast('Gagal simpan jurnal.');
+        try {
+          await addDoc(collection(db, "requests"), newR);
+          showToast('Usulan terkirim ke Cloud!');
+          document.getElementById('req-title').value = '';
+          document.getElementById('req-reason').value = '';
+          await loadAllDataFromFirestore();
+        } catch(e) {
+          showToast('Gagal kirim usulan.');
+        }
+      });
     }
-  });
-}
 
-function renderJournals() {
-  document.getElementById('journal-list').innerHTML = journals.map(j => `
-    <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border text-xs space-y-1">
-      <div class="flex justify-between font-bold"><span>${j.book}</span><span class="text-emerald-600">${j.student}</span></div>
-      <p class="text-slate-600 dark:text-slate-300 italic">"${j.notes}"</p>
-    </div>
-  `).join('');
-}
+    window.deleteRequest = async function(requestId, requestUserId) {
+      if (!currentUser) return;
+      let userIsAdmin = isAdmin;
+      try {
+        const adminDoc = await getDoc(doc(db, "admins", currentUser.uid));
+        if (adminDoc.exists()) userIsAdmin = true;
+      } catch(e) {}
 
-function renderLeaderboard() {
-  const counts = {};
-  journals.forEach(j => { counts[j.student] = (counts[j.student] || 0) + 1; });
-  const sorted = Object.keys(counts).map(s => ({ student: s, count: counts[s] })).sort((a,b) => b.count - a.count);
-  document.getElementById('leaderboard-list').innerHTML = sorted.map((item, idx) => `
-    <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border text-xs">
-      <div class="flex items-center gap-2"><span class="w-6 h-6 rounded bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center">#${idx+1}</span><span class="font-bold">${item.student}</span></div>
-      <span class="font-bold text-emerald-600">${item.count} Jurnal</span>
-    </div>
-  `).join('');
-}
+      const isOwner = currentUser.uid === requestUserId;
+      if (!isOwner && !userIsAdmin) {
+        alert("Akses ditolak! Anda bukan pemilik usulan atau admin.");
+        return;
+      }
 
-window.submitRequest = async function(e) {
-  e.preventDefault();
-  const newR = {
-    name: document.getElementById('req-name').value.trim(),
-    title: document.getElementById('req-title').value.trim(),
-    reason: document.getElementById('req-reason').value.trim()
-  };
-  try {
-    await addDoc(collection(db, "requests"), newR);
-    showToast('Usulan terkirim ke Cloud!');
-    await loadAllDataFromFirestore();
-  } catch(e) {
-    showToast('Gagal kirim usulan.');
-  }
-}
+      if (!confirm("Yakin ingin menghapus usulan ini?")) return;
+      try {
+        await deleteDoc(doc(db, "requests", requestId));
+        showToast("Usulan berhasil dihapus.");
+        await loadAllDataFromFirestore();
+      } catch(err) {
+        showToast("Gagal menghapus usulan.");
+      }
+    }
 
-function renderRequests() {
-  document.getElementById('request-list').innerHTML = requests.map(r => `
-    <div class="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border text-xs space-y-1">
-      <div class="flex justify-between font-bold"><span>${r.title}</span><span class="text-emerald-600">${r.name}</span></div>
-      <p class="text-slate-500 italic">"${r.reason}"</p>
-    </div>
-  `).join('');
-}
+    function renderRequests() {
+      const container = document.getElementById('request-list');
+      if (requests.length === 0) {
+        container.innerHTML = '<p class="text-xs text-slate-400 italic">Belum ada usulan buku.</p>';
+        return;
+      }
+      container.innerHTML = requests.map(r => {
+        const canDelete = currentUser && (currentUser.uid === r.userId || isAdmin);
+        return `
+          <div class="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border text-xs space-y-1">
+            <div class="flex justify-between font-bold">
+              <span>${r.title}</span>
+              <div class="flex items-center gap-2">
+                <span class="text-emerald-600">${r.name}</span>
+                ${canDelete ? `<button onclick="deleteRequest('${r.id}', '${r.userId || ''}')" class="text-rose-500 hover:text-rose-700 font-bold" title="Hapus Usulan"><i class="ph-bold ph-trash"></i></button>` : ''}
+              </div>
+            </div>
+            <p class="text-slate-500 italic">"${r.reason}"</p>
+          </div>
+        `;
+      }).join('');
+    }
 
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  document.getElementById('toast-msg').textContent = msg;
-  t.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
-  setTimeout(() => t.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none'), 2500);
-}
-</script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      document.getElementById('toast-msg').textContent = msg;
+      t.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+      setTimeout(() => t.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none'), 2500);
+    }
+  </script>
 </body>
 </html>
