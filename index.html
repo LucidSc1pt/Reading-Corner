@@ -17,7 +17,7 @@
       document.documentElement.classList.remove('dark');
     }
   </script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -29,26 +29,24 @@
           },
           boxShadow: {
             'card': '0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 0 1px 1px rgba(0, 0, 0, 0.05)',
-            'card-hover': '0 20px 40px -10px rgba(16, 185, 129, 0.15), 0 0 2px 1px rgba(16, 185, 129, 0.1)',
+            'card-hover': '0 20px 40px -10px rgba(16, 185, 129, 0.2), 0 0 2px 1px rgba(16, 185, 129, 0.1)',
             'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.08)'
           }
         }
       }
     }
   </script>
-    <!-- PDF.js Library (Mozilla) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>
-      // Set worker PDF.js secara global
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    </script>
+  <!-- PDF.js Library (Mozilla) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
 
   <style>
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.4); border-radius: 9999px; }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     
-    /* Animasi Halus Transisi Halaman */
     .page-view {
       animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
@@ -77,12 +75,12 @@
         <nav class="hidden md:flex items-center gap-1 bg-slate-100/80 dark:bg-slate-800/60 p-1.5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-inner">
           <button onclick="navigateTo('katalog')" id="nav-desk-katalog" class="nav-desk-btn px-4 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-slate-700 text-emerald-600 shadow-sm transition-all">Katalog Buku</button>
           <button onclick="navigateTo('jurnal')" id="nav-desk-jurnal" class="nav-desk-btn px-4 py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 transition-all hover:text-slate-900">Jurnal Baca</button>
-          <button onclick="navigateTo('leaderboard')" id="nav-desk-leaderboard" class="nav-desk-btn px-4 py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 transition-all hover:text-slate-900">Peringkat Pembaca</button>
+          <button onclick="navigateTo('leaderboard')" id="nav-desk-leaderboard" class="nav-desk-btn px-4 py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 transition-all hover:text-slate-900">Peringkat</button>
           <button onclick="navigateTo('request')" id="nav-desk-request" class="nav-desk-btn px-4 py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 transition-all hover:text-slate-900">Usul Buku</button>
         </nav>
 
         <div class="flex items-center gap-2.5">
-          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-900/50 shadow-sm text-slate-600 dark:text-slate-300">
+          <div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-900/50 shadow-sm text-slate-600 dark:text-slate-300">
             <i class="ph-bold ph-users text-emerald-500 animate-pulse"></i>
             <span>Online: <span id="visitor-count-badge" class="font-bold">...</span></span>
           </div>
@@ -92,7 +90,7 @@
             <i class="ph-bold ph-sun text-base hidden dark:block"></i>
           </button>
           <button id="nav-desk-profile" onclick="navigateTo('profile')" class="nav-desk-btn px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1.5 transition-all border border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-900/50 shadow-sm">
-            <i class="ph-bold ph-user-circle text-base text-emerald-500"></i> Profil
+            <i class="ph-bold ph-user-circle text-base text-emerald-500"></i> <span class="hidden sm:inline">Profil</span>
           </button>
         </div>
       </div>
@@ -100,7 +98,7 @@
   </header>
 
   <!-- MAIN CONTAINER -->
-  <div class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-6 pb-24 md:pb-12">
+  <div class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 pb-28 md:pb-12">
 
     <!-- VIEW: KATALOG -->
     <main id="view-katalog" class="page-view space-y-6">
@@ -108,10 +106,10 @@
         <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
         <div class="relative z-10 space-y-3 max-w-2xl">
           <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/20 text-[11px] font-bold backdrop-blur-md shadow-sm">
-            <i class="ph-bold ph-sparkle text-amber-300"></i> Cloud Synced
+            <i class="ph-bold ph-sparkle text-amber-300"></i> Cloud Synced & Supabase Storage
           </span>
           <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight">Perpustakaan Digital Kelas X-1</h1>
-          <p class="text-emerald-100 text-xs sm:text-sm leading-relaxed">Semua buku, ulasan, dan komentar tersinkronisasi online secara real-time untuk seluruh siswa dan pengunjung.</p>
+          <p class="text-emerald-100 text-xs sm:text-sm leading-relaxed">Jelajahi koleksi buku lengkap, baca PDF langsung mulus tanpa lag, dan bagikan jurnal membacamu bersama teman-teman.</p>
         </div>
       </div>
 
@@ -154,7 +152,7 @@
       </div>
 
       <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-8 shadow-card">
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-8 items-start">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
           <div class="flex flex-col items-center gap-4">
             <img id="detail-cover" class="w-44 sm:w-60 h-64 sm:h-84 object-cover rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800" src="" alt="Cover">
             <div class="flex flex-col items-center justify-center p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 shrink-0 w-full shadow-inner">
@@ -166,14 +164,14 @@
           <div class="md:col-span-2 space-y-5">
             <div class="space-y-2 text-center md:text-left">
               <span id="detail-category" class="inline-block px-3.5 py-1 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded-xl text-xs font-extrabold shadow-sm">Kategori</span>
-              <h1 id="detail-title" class="text-s sm:text-4xl font-extrabold text-slate-900 dark:text-white">Judul Buku</h1>
-              <p id="detail-author" class="text-s sm:text-base text-emerald-600 dark:text-emerald-400 font-bold">Penulis</p>
+              <h1 id="detail-title" class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">Judul Buku</h1>
+              <p id="detail-author" class="text-sm sm:text-base text-emerald-600 dark:text-emerald-400 font-bold">Penulis</p>
             </div>
 
-            <div class="grid grid-cols-3 gap-1 p-2 max-w-80 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/80 dark:border-slate-800 text-center text-xs shadow-inner">
-              <div><span class="text-slate-400 block text-[5px] uppercase font-bold">Rating</span><span id="detail-rating-num" class="font-extrabold text-amber-500 text-[10px]">★ 4.8</span></div>
-              <div><span class="text-slate-400 block text-[5px] uppercase font-bold">Halaman</span><span id="detail-pages-count" class="font-extrabold text-[10px]">120</span></div>
-              <div><span class="text-slate-400 block text-[5px] uppercase font-bold">Akses</span><span class="font-extrabold text-emerald-600 text-[10px]">X-1 Cloud</span></div>
+            <div class="grid grid-cols-3 gap-2 p-3 max-w-sm bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/80 dark:border-slate-800 text-center text-xs shadow-inner">
+              <div><span class="text-slate-400 block text-[9px] uppercase font-bold">Rating</span><span id="detail-rating-num" class="font-extrabold text-amber-500 text-sm">★ 4.8</span></div>
+              <div><span class="text-slate-400 block text-[9px] uppercase font-bold">Halaman</span><span id="detail-pages-count" class="font-extrabold text-sm">120</span></div>
+              <div><span class="text-slate-400 block text-[9px] uppercase font-bold">Akses</span><span class="font-extrabold text-emerald-600 text-sm">Supabase</span></div>
             </div>
 
             <div class="flex flex-wrap gap-3 pt-2">
@@ -252,15 +250,13 @@
         <div id="reader-body-text" class="font-serif leading-relaxed space-y-5 text-base sm:text-lg"></div>
         <div id="reader-pagination-footer" class="pt-6 mt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-4 items-center justify-between">
           <div class="text-xs font-bold text-slate-500">Halaman <span id="reader-curr-page">1</span> dari <span id="reader-total-page">1</span></div>
-          <div class="flex items-center gap-2 w-full sm:w-auto">
-            <button id="reader-prev-btn" onclick="prevReaderPage()" class="flex-1 sm:flex-none px-5 py-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold hover:bg-slate-200 disabled:opacity-30 transition-all">&larr; Sebelumnya</button>
-            <button id="reader-next-btn" onclick="nextReaderPage()" class="flex-1 sm:flex-none px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 disabled:opacity-30 shadow-md shadow-emerald-500/20 transition-all">Selanjutnya &rarr;</button>
+          
+          <div class="flex items-center gap-2 w-full sm:w-auto justify-center">
+            <button id="reader-prev-btn" onclick="prevReaderPage()" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold hover:bg-slate-200 disabled:opacity-30 transition-all">&larr; Prev</button>
+            <button onclick="zoomOutPdf()" class="px-3 py-2 bg-slate-200 dark:bg-slate-700 rounded-xl text-xs font-bold hover:bg-slate-300 transition-all" title="Zoom Out">🔍-</button>
+            <button onclick="zoomInPdf()" class="px-3 py-2 bg-slate-200 dark:bg-slate-700 rounded-xl text-xs font-bold hover:bg-slate-300 transition-all" title="Zoom In">🔍+</button>
+            <button id="reader-next-btn" onclick="nextReaderPage()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 disabled:opacity-30 shadow-md shadow-emerald-500/20 transition-all">Next &rarr;</button>
           </div>
-            <!-- Tombol Kontrol Zoom Tambahan di Reader -->
-            <div class="flex justify-center items-center gap-3 my-2">
-              <button onclick="zoomOutPdf()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white text-xs rounded-lg shadow font-bold">🔍 - Zoom</button>
-              <button onclick="zoomInPdf()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white text-xs rounded-lg shadow font-bold">🔍 + Zoom</button>
-            </div>
         </div>
       </div>
     </section>
@@ -421,28 +417,9 @@
           <input type="file" accept="image/*" onchange="handleCoverFile(event)" class="w-full text-[10px] text-slate-500">
         </div>
         <div>
-          <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">Konten Halaman Teks (Pisahkan dengan ||)</label>
-          <textarea id="form-book-content" rows="2.5" placeholder="Hal 1... || Hal 2..." class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500"></textarea>
-        </div>
-        <div>
-          <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">File PDF Buku (Upload Langsung)</label>
+          <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">File PDF Buku (Upload Langsung ke Supabase)</label>
           <input type="file" id="form-book-pdf-file" accept="application/pdf" class="w-full text-[10px] text-slate-500 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1.5 mb-1.5">
           <input type="url" id="form-book-pdf" placeholder="Atau masukkan Link PDF eksternal..." class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500">
-  
-          <!-- Kotak Progress Bar (Default Disembunyikan) -->
-          <div id="upload-progress-container" class="hidden space-y-1.5 pt-2">
-            <div class="flex justify-between text-[10px] font-extrabold text-slate-500">
-              <span id="upload-status-text">Mengunggah PDF...</span>
-              <span id="upload-percentage">0%</span>
-            </div>
-            <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden shadow-inner">
-              <div id="upload-progress-bar" class="bg-emerald-600 h-full w-0 transition-all duration-150"></div>
-            </div>
-            <div class="flex justify-between text-[9px] text-slate-400 font-medium">
-              <span id="upload-speed">0 KB/s</span>
-              <span id="upload-sizes">0 MB / 0 MB</span>
-            </div>
-          </div>
         </div>
 
         <div class="flex justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
@@ -532,10 +509,10 @@
     let pdfDoc = null;
     let pdfPageNum = 1;
     let isRenderingPdf = false;
+    let pdfZoomLevel = 1.3; // Default zoom yang pas
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, addDoc, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { getStorage, ref, uploadBytesResumable, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+    import { getFirestore, collection, getDocs, addDoc, doc, getDoc, deleteDoc, updateDoc, increment, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { 
       getAuth, 
       signInWithPopup, 
@@ -557,15 +534,13 @@
       measurementId: "G-63BL4BHS6F"
     };
 
-          // Inisialisasi Supabase (Ganti dengan URL dan Key punya kamu)
+    // Supabase Config
     const SUPABASE_URL = "https://huhgdqvildeepkwxzzjl.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_6SA6zPt1COvdxqBNOrMk2w_sQvpfMue";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const storage = getStorage(app);
-    
     const auth = getAuth(app);
     const googleProvider = new GoogleAuthProvider();
 
@@ -678,7 +653,6 @@
 
     async function trackVisitorCount() {
       try {
-        const { doc, getDoc, setDoc, updateDoc, increment } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
         const statRef = doc(db, "stats", "visitors");
         const snap = await getDoc(statRef);
         if (snap.exists()) {
@@ -689,116 +663,95 @@
           document.getElementById('visitor-count-badge').textContent = "1";
         }
       } catch (err) {
-        console.log("Visitor counter skipped:", err);
         document.getElementById('visitor-count-badge').textContent = "1";
       }
     }
 
-let pdfZoomLevel = 1.5; // Default pembesaran 1.5x lebih besar dari ukuran asli
+    // PERBAIKAN BUG ZOOM CANVAS PDF & MENCEGAH STRETCH / MELAR
+    async function renderPdfPage(num) {
+      if (!pdfDoc) return;
+      isRenderingPdf = true;
 
-async function renderPdfPage(num) {
-  if (!pdfDoc) return;
-  isRenderingPdf = true;
+      const canvas = document.getElementById('pdf-render-canvas');
+      if (!canvas) return;
+      
+      const ctx = canvas.getContext('2d');
+      const page = await pdfDoc.getPage(num);
 
-  const canvas = document.getElementById('pdf-render-canvas');
-  if (!canvas) return;
-  
-  const ctx = canvas.getContext('2d');
-  const page = await pdfDoc.getPage(num);
+      const container = document.getElementById('reader-pdf-container');
+      const containerWidth = container ? container.clientWidth - 32 : window.innerWidth - 32;
+      
+      const unscaledViewport = page.getViewport({ scale: 1.0 });
+      const baseScale = containerWidth / unscaledViewport.width;
+      const scale = baseScale * pdfZoomLevel;
+      const viewport = page.getViewport({ scale: scale });
 
-  const container = document.getElementById('reader-pdf-container');
-  const containerWidth = container ? container.clientWidth - 16 : window.innerWidth - 32;
-  
-  const unscaledViewport = page.getViewport({ scale: 1.0 });
-  
-  // Skala dasar disesuaikan lebar layar, lalu dikalikan dengan pdfZoomLevel agar teksnya besar & terbaca jelas
-  const baseScale = containerWidth / unscaledViewport.width;
-  const scale = baseScale * pdfZoomLevel;
-  const viewport = page.getViewport({ scale: scale });
+      const dpr = window.devicePixelRatio || 1;
+      
+      // Atur resolusi internal canvas agar tajam
+      canvas.height = viewport.height * dpr;
+      canvas.width = viewport.width * dpr;
 
-  // Dukungan High-DPI (Retina/Mobile) agar teks tidak pecah/blur saat diperbesar
-  const dpr = window.devicePixelRatio || 1;
-  // Atur ukuran pixel internal canvas sesuai skala PDF.js
-    canvas.height = viewport.height * dpr;
-    canvas.width = viewport.width * dpr;
+      // Atur ukuran CSS presisi agar tidak gepeng/melar (stretch) dan memungkinkan scroll
+      canvas.style.width = `${viewport.width}px`;
+      canvas.style.height = `${viewport.height}px`;
 
-    // Batasi ukuran tampilannya di layar agar tetap rapi dan tidak melar
-    canvas.style.width = '100%';
-    canvas.style.height = 'auto';
-    canvas.style.maxWidth = `${viewport.width}px`;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
 
+      const renderContext = {
+        canvasContext: ctx,
+        viewport: viewport
+      };
 
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.scale(dpr, dpr);
+      await page.render(renderContext).promise;
+      isRenderingPdf = false;
 
-  const renderContext = {
-    canvasContext: ctx,
-    viewport: viewport
-  };
+      document.getElementById('reader-curr-page').textContent = num;
+      document.getElementById('reader-total-page').textContent = pdfDoc.numPages;
+    }
 
-  await page.render(renderContext).promise;
-  isRenderingPdf = false;
+    window.zoomInPdf = function() {
+      if (!pdfDoc) return;
+      if (pdfZoomLevel < 3.0) {
+        pdfZoomLevel += 0.25;
+        renderPdfPage(pdfPageNum);
+        showToast(`Zoom: ${Math.round(pdfZoomLevel * 100)}%`);
+      }
+    };
 
-  // Perbarui indikator halaman
-  document.getElementById('reader-curr-page').textContent = num;
-  document.getElementById('reader-total-page').textContent = pdfDoc.numPages;
-}
-
-// Tambahkan Fungsi Tombol Zoom In & Zoom Out
-window.zoomInPdf = function() {
-  if (!pdfDoc) return;
-  if (pdfZoomLevel < 3.0) {
-    pdfZoomLevel += 0.25;
-    renderPdfPage(pdfPageNum);
-  }
-};
-
-window.zoomOutPdf = function() {
-  if (!pdfDoc) return;
-  if (pdfZoomLevel > 0.75) {
-    pdfZoomLevel -= 0.25;
-    renderPdfPage(pdfPageNum);
-  }
-};
+    window.zoomOutPdf = function() {
+      if (!pdfDoc) return;
+      if (pdfZoomLevel > 0.75) {
+        pdfZoomLevel -= 0.25;
+        renderPdfPage(pdfPageNum);
+        showToast(`Zoom: ${Math.round(pdfZoomLevel * 100)}%`);
+      }
+    };
 
     onAuthStateChanged(auth, async (user) => {
       currentUser = user;
       isAdmin = false;
       userRole = "";
       
-      const userAuthBtn = document.getElementById('user-auth-btn') || document.getElementById('auth-nav-button');
-      
       if (user) {
-        console.log("User login UID:", user.uid);
         try {
           const adminDoc = await getDoc(doc(db, "admins", user.uid));
           if (adminDoc.exists()) {
             isAdmin = true;
-            const data = adminDoc.data();
-            userRole = data.role || "Admin";
-            console.log("Status: Admin terverifikasi dengan role:", userRole);
+            userRole = adminDoc.data().role || "Admin";
           }
         } catch (err) {
-          console.error("Gagal memeriksa status admin:", err);
+          console.error("Gagal cek admin:", err);
         }
-        
         await updateUserProfileUI(user);
-
-        if (userAuthBtn) {
-          userAuthBtn.onclick = () => navigateTo('profile');
-          userAuthBtn.innerHTML = `<i class="ph-bold ph-user-circle text-emerald-500 text-base"></i> <span class="hidden sm:inline">${user.displayName || 'Profil'}</span>`;
-        }
       } else {
         currentUser = null;
         isAdmin = false;
         userRole = "";
         await updateUserProfileUI(null);
-
-        if (userAuthBtn) {
-          userAuthBtn.onclick = () => openUserAuthModal();
-          userAuthBtn.innerHTML = `<i class="ph-bold ph-lock-key text-slate-400"></i> <span class="hidden sm:inline">Login</span>`;
-        }
       }
+      updateAdminUI();
     });
         
     window.openUserAuthModal = function() { document.getElementById('user-auth-modal').classList.remove('hidden'); }
@@ -810,7 +763,6 @@ window.zoomOutPdf = function() {
         showToast(`Selamat datang, ${result.user.displayName}!`);
         closeUserAuthModal();
       } catch (error) {
-        console.error(error);
         showToast("Gagal login dengan Google.");
       }
     }
@@ -863,7 +815,7 @@ window.zoomOutPdf = function() {
         category: 'Fiksi',
         description: 'Kisah inspiratif sepuluh anak Belitung dalam menggapai mimpi.',
         cover: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&auto=format&fit=crop&q=80',
-        pages: ['Halaman 1: Bab pendahuluan menceritakan awal mula kisah ekspedisi sains ini. || <img src="https://images.unsplash.com/photo-1532012197267-da84d127e765?w=600" class="rounded-xl mx-auto my-4 max-h-80 shadow-md"> || Halaman 3: Grafik dan hasil eksperimen menunjukkan peningkatan yang signifikan.', "Halaman 2: Semangat Lintang menempuh puluhan kilometer."]
+        pages: ['Halaman 1: Bab pendahuluan menceritakan awal mula kisah ekspedisi sains ini.']
       }
     ];
 
@@ -913,12 +865,10 @@ window.zoomOutPdf = function() {
 
     async function loadAllDataFromFirestore() {
       try {
-        showToast('Memuat data...');
         const fetchCollection = async (collName) => {
           try {
             return await getDocs(collection(db, collName));
           } catch (e) {
-            console.warn(`Gagal memuat koleksi ${collName}:`, e);
             return { docs: [] };
           }
         };
@@ -956,8 +906,6 @@ window.zoomOutPdf = function() {
         renderLeaderboard();
         renderRequests();
       } catch (err) {
-        console.error("Gagal memuat Firestore:", err);
-        showToast('Gagal memuat database.');
         books = DEFAULT_BOOKS;
         renderBooks();
       }
@@ -1007,9 +955,7 @@ window.zoomOutPdf = function() {
           if (bioText) bioText.textContent = `"Gemar membaca buku di Pojok Baca X-1."`;
           if (editBio) editBio.value = '';
         }
-      } catch(err) {
-        console.error("Gagal memuat bio:", err);
-      }
+      } catch(err) {}
 
       updateAdminUI();
     }
@@ -1038,7 +984,6 @@ window.zoomOutPdf = function() {
           photoURL: finalPhoto
         });
 
-        const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
         await setDoc(doc(db, "users", currentUser.uid), {
           bio: newBio,
           displayName: newName,
@@ -1049,7 +994,6 @@ window.zoomOutPdf = function() {
         showToast("Profil & Bio berhasil diperbarui!");
         updateUserProfileUI(currentUser);
       } catch (err) {
-        console.error(err);
         showToast("Gagal memperbarui profil.");
       }
     }
@@ -1087,18 +1031,12 @@ window.zoomOutPdf = function() {
               Snippet: "${rep.snippet || 'Detail konten'}"
             </div>
             <div class="flex justify-end gap-2 pt-1">
-              <button onclick="dismissReport('${rep.id}')" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-[10px] font-bold hover:bg-slate-200">
-                Abaikan
-              </button>
-              <button onclick="handleReportDeleteContent('${rep.type}', '${rep.itemId}', '${rep.id}')" class="px-2.5 py-1 bg-rose-600 text-white rounded-lg text-[10px] font-bold hover:bg-rose-700">
-                Hapus Konten
-              </button>
+              <button onclick="dismissReport('${rep.id}')" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-[10px] font-bold hover:bg-slate-200">Abaikan</button>
+              <button onclick="handleReportDeleteContent('${rep.type}', '${rep.itemId}', '${rep.id}')" class="px-2.5 py-1 bg-rose-600 text-white rounded-lg text-[10px] font-bold hover:bg-rose-700">Hapus Konten</button>
             </div>
           </div>
         `).join('');
-      } catch(err) {
-        console.error("Gagal memuat laporan:", err);
-      }
+      } catch(err) {}
     }
 
     window.dismissReport = async function(reportId) {
@@ -1106,20 +1044,15 @@ window.zoomOutPdf = function() {
         await deleteDoc(doc(db, "reports", reportId));
         showToast('Laporan diabaikan.');
         loadAdminReports();
-      } catch(err) {
-        showToast('Gagal menghapus laporan.');
-      }
+      } catch(err) {}
     }
 
     window.handleReportDeleteContent = async function(type, itemId, reportId) {
-      if(!currentUser) {
-        alert("Akses ditolak!");
-        return;
-      }
+      if(!currentUser) return;
       try {
         const adminDoc = await getDoc(doc(db, "admins", currentUser.uid));
         if (!adminDoc.exists()) {
-          alert("⚠️ Akses ditolak! Akun Anda bukan Admin terverifikasi.");
+          alert("⚠️ Akses ditolak! Akun Anda bukan Admin.");
           return;
         }
 
@@ -1132,11 +1065,10 @@ window.zoomOutPdf = function() {
         await deleteDoc(doc(db, collectionName, itemId));
         await deleteDoc(doc(db, "reports", reportId));
 
-        showToast('Konten melanggar & laporan berhasil dihapus!');
+        showToast('Konten & laporan berhasil dihapus!');
         await loadAllDataFromFirestore();
         loadAdminReports();
       } catch(err) {
-        console.error(err);
         showToast('Gagal menghapus konten.');
       }
     }
@@ -1203,15 +1135,13 @@ window.zoomOutPdf = function() {
           adminBadge.classList.remove('hidden');
         }
         if(adminReportsSection) adminReportsSection.classList.remove('hidden');
-        if (typeof loadAdminReports === 'function') {
-          loadAdminReports();
-        }
+        loadAdminReports();
       } else {
         if(addBtn) addBtn.classList.add('hidden');
         if(adminBadge) adminBadge.classList.add('hidden');
         if(adminReportsSection) adminReportsSection.classList.add('hidden');
       }
-      if (typeof renderBooks === 'function') renderBooks();
+      renderBooks();
     }
 
     function renderCategoryChips() {
@@ -1268,10 +1198,10 @@ window.zoomOutPdf = function() {
               <span class="font-extrabold text-amber-500 flex items-center gap-1">★ ${avg}</span>
               <div class="flex items-center gap-1">
                 ${isAdmin ? `
-                  <button onclick="event.stopPropagation(); openEditBookModal('${b.id}')" class="p-1.5 text-slate-400 hover:text-amber-500 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all" title="Edit Buku">
+                  <button onclick="event.stopPropagation(); openEditBookModal('${b.id}')" class="p-1.5 text-slate-400 hover:text-amber-500 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all" title="Edit">
                     <i class="ph-bold ph-pencil-simple text-xs"></i>
                   </button>
-                  <button onclick="event.stopPropagation(); deleteBook('${b.id}')" class="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all" title="Hapus Buku">
+                  <button onclick="event.stopPropagation(); deleteBook('${b.id}')" class="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all" title="Hapus">
                     <i class="ph-bold ph-trash text-xs"></i>
                   </button>
                 ` : ''}
@@ -1322,10 +1252,7 @@ window.zoomOutPdf = function() {
         showToast('Komentar berhasil dihapus.');
         await loadAllDataFromFirestore();
         openBookDetail(selectedBookId);
-      } catch (err) {
-        console.error(err);
-        showToast('Gagal menghapus komentar.');
-      }
+      } catch (err) {}
     }
 
     window.deleteReview = async function(reviewId) {
@@ -1335,10 +1262,7 @@ window.zoomOutPdf = function() {
         showToast('Ulasan berhasil dihapus.');
         await loadAllDataFromFirestore();
         openBookDetail(selectedBookId);
-      } catch (err) {
-        console.error(err);
-        showToast('Gagal menghapus ulasan.');
-      }
+      } catch (err) {}
     }
 
     window.submitReview = async function(e) {
@@ -1348,7 +1272,7 @@ window.zoomOutPdf = function() {
         const text = document.getElementById('review-text').value.trim();
 
         if (containsBadWords(text)) {
-          alert("⚠️ Peringatan: Ulasan mengandung kata-kata yang tidak sopan! Harap gunakan bahasa yang baik dan bijak.");
+          alert("⚠️ Peringatan: Ulasan mengandung kata-kata yang tidak sopan!");
           return;
         }
           
@@ -1364,13 +1288,11 @@ window.zoomOutPdf = function() {
 
         try {
           await addDoc(collection(db, "reviews"), newRev);
-          showToast('Ulasan berhasil dikirim ke Cloud!');
+          showToast('Ulasan berhasil dikirim!');
           document.getElementById('review-text').value = '';
           await loadAllDataFromFirestore();
           openBookDetail(selectedBookId);
-        } catch(err) {
-          showToast('Gagal mengirim ulasan.');
-        }
+        } catch(err) {}
       });
     }
 
@@ -1386,10 +1308,8 @@ window.zoomOutPdf = function() {
           reason: reason,
           date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
         });
-        showToast('Laporan berhasil dikirim ke Admin. Terima kasih!');
-      } catch(err) {
-        showToast('Gagal mengirim laporan.');
-      }
+        showToast('Laporan terkirim ke Admin.');
+      } catch(err) {}
     }
 
     function renderReviewsAndRating(bookId) {
@@ -1413,11 +1333,7 @@ window.zoomOutPdf = function() {
               <span class="text-emerald-600 dark:text-emerald-400">${r.name}</span>
               <div class="flex items-center gap-2">
                 <span class="text-amber-500">${'★'.repeat(r.rating)}</span>
-                ${isOwnerOrAdmin ? `
-                  <button onclick="deleteReview('${r.id}')" class="text-rose-500 hover:underline text-[11px] font-bold" title="Hapus Ulasan">
-                    <i class="ph-bold ph-trash"></i> Hapus
-                  </button>
-                ` : ''}
+                ${isOwnerOrAdmin ? `<button onclick="deleteReview('${r.id}')" class="text-rose-500 hover:underline text-[11px] font-bold"><i class="ph-bold ph-trash"></i> Hapus</button>` : ''}
               </div>
             </div>
             <p class="text-slate-600 dark:text-slate-300 leading-relaxed">${r.text}</p>
@@ -1432,7 +1348,7 @@ window.zoomOutPdf = function() {
         let text = document.getElementById('comment-text').value.trim();
 
         if (containsBadWords(text)) {
-          alert("⚠️ Peringatan: Komentar mengandung kata-kata yang tidak sopan! Harap gunakan bahasa yang baik dan bijak.");
+          alert("⚠️ Peringatan: Komentar mengandung kata-kata yang tidak sopan!");
           return;
         }
 
@@ -1457,12 +1373,10 @@ window.zoomOutPdf = function() {
           await addDoc(collection(db, "comments"), newCom);
           lastCommentTime = Date.now();
           document.getElementById('comment-text').value = '';
-          showToast('Komentar terkirim ke Cloud!');
+          showToast('Komentar terkirim!');
           await loadAllDataFromFirestore();
           openBookDetail(selectedBookId);
-        } catch(err) {
-          showToast('Gagal mengirim komentar.');
-        }
+        } catch(err) {}
       });
     }
 
@@ -1482,14 +1396,8 @@ window.zoomOutPdf = function() {
               <span class="text-emerald-600 dark:text-emerald-400">${c.name}</span>
               <div class="flex items-center gap-2.5">
                 <span class="text-[10px] text-slate-400 font-normal">${c.date}</span>
-                <button onclick="reportItem('comment', '${c.id}', '${c.text.substring(0, 30)}...')" class="text-[10px] text-slate-400 hover:text-rose-500 font-semibold transition-colors" title="Laporkan Komentar">
-                    <i class="ph-bold ph-warning text-xs"></i> Laporkan
-                </button>
-                ${isOwnerOrAdmin ? `
-                  <button onclick="deleteComment('${c.id}')" class="text-rose-500 hover:underline text-[11px] font-bold" title="Hapus Komentar">
-                    <i class="ph-bold ph-trash"></i> Hapus
-                  </button>
-                ` : ''}
+                <button onclick="reportItem('comment', '${c.id}', '${c.text.substring(0, 30)}...')" class="text-[10px] text-slate-400 hover:text-rose-500 font-semibold" title="Laporkan"><i class="ph-bold ph-warning text-xs"></i> Laporkan</button>
+                ${isOwnerOrAdmin ? `<button onclick="deleteComment('${c.id}')" class="text-rose-500 hover:underline text-[11px] font-bold"><i class="ph-bold ph-trash"></i> Hapus</button>` : ''}
               </div>
             </div>
             <p class="text-slate-600 dark:text-slate-300 leading-relaxed">${c.text}</p>
@@ -1506,96 +1414,84 @@ window.zoomOutPdf = function() {
       navigateTo('reader');
     }
 
-async function renderReaderContent() {
-  const book = books.find(b => b.id === selectedBookId);
-  if (!book) return;
-
-  const canvasContainer = document.getElementById('reader-canvas');
-  const textCanvas = document.getElementById('reader-body-text');
-  const paginationControls = document.getElementById('reader-pagination-footer');
-
-  // Pastikan kontrol tombol halaman di footer SELALU TAMPIL
-  if (paginationControls) paginationControls.classList.remove('hidden');
-
-  if (book.pdfUrl) {
-    if (textCanvas) textCanvas.classList.add('hidden');
-
-    let pdfContainer = document.getElementById('reader-pdf-container');
-    if (!pdfContainer) {
-      pdfContainer = document.createElement('div');
-      pdfContainer.id = 'reader-pdf-container';
-      pdfContainer.className = 'w-full flex justify-center items-center overflow-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-900/50 p-4 min-h-[65vh]';
-        canvasContainer.prepend(pdfContainer);
-    } else {
-      pdfContainer.classList.remove('hidden');
-    }
-
-    pdfContainer.innerHTML = `<canvas id="pdf-render-canvas" class="rounded-xl shadow-lg object-contain max-h-[75vh]"></canvas>`;
-
-    try {
-      showToast('Memuat dokumen PDF...');
-      pdfPageNum = 1; // Mulai dari halaman 1
-      pdfDoc = await pdfjsLib.getDocument(book.pdfUrl).promise;
-      await renderPdfPage(pdfPageNum);
-    } catch (err) {
-      console.error(err);
-      pdfContainer.innerHTML = `<p class="text-rose-500 text-xs text-center p-4">Gagal memuat halaman PDF.</p>`;
-    }
-
-  } else {
-    // Jalur jika buku berupa teks manual biasa
-    let pdfContainer = document.getElementById('reader-pdf-container');
-    if (pdfContainer) pdfContainer.classList.add('hidden');
-    if (textCanvas) textCanvas.classList.remove('hidden');
-
-    const pages = book.pages || [`Halaman 1: ${book.description}`];
-    document.getElementById('reader-curr-page').textContent = readerCurrentPage + 1;
-    document.getElementById('reader-total-page').textContent = pages.length;
-    textCanvas.innerHTML = pages[readerCurrentPage];
-  }
-}
-
-window.nextReaderPage = function() {
-  const book = books.find(b => b.id === selectedBookId);
-  if (!book) return;
-
-  if (book.pdfUrl && pdfDoc) {
-    if (pdfPageNum >= pdfDoc.numPages || isRenderingPdf) return;
-    pdfPageNum++;
-    renderPdfPage(pdfPageNum);
-  } else {
-    // Logika halaman teks biasa
-    if (readerCurrentPage < book.pages.length - 1) {
-      readerCurrentPage++;
-      renderReaderContent();
-    }
-  }
-};
-
-// Fungsi Tombol Halaman Sebelumnya
-window.prevReaderPage = function() {
-  const book = books.find(b => b.id === selectedBookId);
-  if (!book) return;
-
-  if (book.pdfUrl && pdfDoc) {
-    if (pdfPageNum <= 1 || isRenderingPdf) return;
-    pdfPageNum--;
-    renderPdfPage(pdfPageNum);
-  } else {
-    // Logika halaman teks biasa
-    if (readerCurrentPage > 0) {
-      readerCurrentPage--;
-      renderReaderContent();
-    }
-  }
-};
-      
-    window.turnReaderPage = function(delta) {
+    async function renderReaderContent() {
       const book = books.find(b => b.id === selectedBookId);
-      const pages = book.pages || [1];
-      const newPage = readerCurrentPage + delta;
-      if(newPage >= 0 && newPage < pages.length) { readerCurrentPage = newPage; renderReaderContent(); }
+      if (!book) return;
+
+      const canvasContainer = document.getElementById('reader-canvas');
+      const textCanvas = document.getElementById('reader-body-text');
+      const paginationControls = document.getElementById('reader-pagination-footer');
+
+      if (paginationControls) paginationControls.classList.remove('hidden');
+
+      if (book.pdfUrl) {
+        if (textCanvas) textCanvas.classList.add('hidden');
+
+        let pdfContainer = document.getElementById('reader-pdf-container');
+        if (!pdfContainer) {
+          pdfContainer = document.createElement('div');
+          pdfContainer.id = 'reader-pdf-container';
+          // Dibuat overflow-auto supaya bisa digeser saat di-zoom
+          pdfContainer.className = 'w-full flex justify-center items-center overflow-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-900/50 p-4 min-h-[65vh] max-h-[75vh]';
+          canvasContainer.prepend(pdfContainer);
+        } else {
+          pdfContainer.classList.remove('hidden');
+        }
+
+        pdfContainer.innerHTML = `<canvas id="pdf-render-canvas" class="rounded-xl shadow-lg"></canvas>`;
+
+        try {
+          showToast('Memuat dokumen PDF dari Supabase...');
+          pdfPageNum = 1; 
+          pdfDoc = await pdfjsLib.getDocument(book.pdfUrl).promise;
+          await renderPdfPage(pdfPageNum);
+        } catch (err) {
+          pdfContainer.innerHTML = `<p class="text-rose-500 text-xs text-center p-4">Gagal memuat halaman PDF.</p>`;
+        }
+
+      } else {
+        let pdfContainer = document.getElementById('reader-pdf-container');
+        if (pdfContainer) pdfContainer.classList.add('hidden');
+        if (textCanvas) textCanvas.classList.remove('hidden');
+
+        const pages = book.pages || [`Halaman 1: ${book.description}`];
+        document.getElementById('reader-curr-page').textContent = readerCurrentPage + 1;
+        document.getElementById('reader-total-page').textContent = pages.length;
+        textCanvas.innerHTML = pages[readerCurrentPage];
+      }
     }
+
+    window.nextReaderPage = function() {
+      const book = books.find(b => b.id === selectedBookId);
+      if (!book) return;
+
+      if (book.pdfUrl && pdfDoc) {
+        if (pdfPageNum >= pdfDoc.numPages || isRenderingPdf) return;
+        pdfPageNum++;
+        renderPdfPage(pdfPageNum);
+      } else {
+        if (readerCurrentPage < book.pages.length - 1) {
+          readerCurrentPage++;
+          renderReaderContent();
+        }
+      }
+    };
+
+    window.prevReaderPage = function() {
+      const book = books.find(b => b.id === selectedBookId);
+      if (!book) return;
+
+      if (book.pdfUrl && pdfDoc) {
+        if (pdfPageNum <= 1 || isRenderingPdf) return;
+        pdfPageNum--;
+        renderPdfPage(pdfPageNum);
+      } else {
+        if (readerCurrentPage > 0) {
+          readerCurrentPage--;
+          renderReaderContent();
+        }
+      }
+    };
 
     window.adjustFontSize = function(delta) {
       readerFontSize = Math.max(12, Math.min(28, readerFontSize + delta));
@@ -1627,11 +1523,9 @@ window.prevReaderPage = function() {
       document.getElementById('form-book-category').value = "Fiksi";
       document.getElementById('form-book-desc').value = "";
       document.getElementById('form-book-cover-url').value = "";
-      document.getElementById('form-book-content').value = "";
       document.getElementById('form-book-pdf').value = "";
       const pdfFileEl = document.getElementById('form-book-pdf-file');
       if(pdfFileEl) pdfFileEl.value = "";
-        
       tempCoverBase64 = "";
       document.getElementById('add-book-modal').classList.remove('hidden');
     }
@@ -1650,9 +1544,6 @@ window.prevReaderPage = function() {
       document.getElementById('form-book-pdf').value = book.pdfUrl || "";
       const pdfFileEl = document.getElementById('form-book-pdf-file');
       if(pdfFileEl) pdfFileEl.value = "";
-
-      const pagesText = book.pages ? book.pages.join(' || ') : "";
-      document.getElementById('form-book-content').value = pagesText;
       tempCoverBase64 = "";
       document.getElementById('add-book-modal').classList.remove('hidden');
     }
@@ -1670,77 +1561,66 @@ window.prevReaderPage = function() {
       }
     }
 
- window.saveBookEntry = async function(e) {
-  e.preventDefault();
-  
-  const bookId = document.getElementById('form-book-id').value;
-  const title = document.getElementById('form-book-title').value.trim();
-  const author = document.getElementById('form-book-author').value.trim();
-  const category = document.getElementById('form-book-category').value;
-  const description = document.getElementById('form-book-desc').value.trim();
-  const urlCover = document.getElementById('form-book-cover-url').value.trim();
-  const rawContent = document.getElementById('form-book-content').value.trim();
-
-  let pdfUrl = document.getElementById('form-book-pdf').value.trim();
-  const pdfFileInput = document.getElementById('form-book-pdf-file');
-
-  try {
-    // Jika admin mengunggah file PDF baru ke Supabase
-    if (pdfFileInput && pdfFileInput.files[0]) {
-      const pdfFile = pdfFileInput.files[0];
-      showToast('Mengunggah file PDF ke Supabase Storage...');
+    window.saveBookEntry = async function(e) {
+      e.preventDefault();
       
-      const fileName = `${Date.now()}_${pdfFile.name}`;
-      
-      // Upload ke bucket 'buku-pdf' di Supabase
-      const { data, error } = await supabase.storage
-        .from('buku-pdf')
-        .upload(fileName, pdfFile);
+      const bookId = document.getElementById('form-book-id').value;
+      const title = document.getElementById('form-book-title').value.trim();
+      const author = document.getElementById('form-book-author').value.trim();
+      const category = document.getElementById('form-book-category').value;
+      const description = document.getElementById('form-book-desc').value.trim();
+      const urlCover = document.getElementById('form-book-cover-url').value.trim();
 
-      if (error) {
-        console.error('Supabase Error:', error);
-        throw new Error(error.message);
+      let pdfUrl = document.getElementById('form-book-pdf').value.trim();
+      const pdfFileInput = document.getElementById('form-book-pdf-file');
+
+      try {
+        if (pdfFileInput && pdfFileInput.files[0]) {
+          const pdfFile = pdfFileInput.files[0];
+          showToast('Mengunggah file PDF ke Supabase Storage...');
+          
+          const fileName = `${Date.now()}_${pdfFile.name}`;
+          const { data, error } = await supabase.storage
+            .from('buku-pdf')
+            .upload(fileName, pdfFile);
+
+          if (error) throw new Error(error.message);
+
+          const { data: publicUrlData } = supabase.storage
+            .from('buku-pdf')
+            .getPublicUrl(fileName);
+
+          pdfUrl = publicUrlData.publicUrl;
+        }
+
+        let finalCover = tempCoverBase64 || urlCover;
+        if(!finalCover && bookId) {
+          const existingBook = books.find(b => b.id === bookId);
+          if(existingBook) finalCover = existingBook.cover;
+        }
+        if(!finalCover) finalCover = 'https://placehold.co/400x600/10b981/ffffff?text=Book';
+
+        const bookData = { title, author, category, description, cover: finalCover, pages: ["Halaman 1..."], pdfUrl };
+
+        if(bookId) {
+          const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+          await setDoc(doc(db, "books", bookId), bookData, { merge: true });
+          showToast('Buku berhasil diperbarui!');
+          closeAddBookModal();
+          await loadAllDataFromFirestore();
+          if(selectedBookId === bookId) openBookDetail(bookId);
+        } else {
+          const { addDoc, collection } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+          await addDoc(collection(db, "books"), bookData);
+          showToast('Buku baru & PDF berhasil disimpan!');
+          closeAddBookModal();
+          await loadAllDataFromFirestore();
+        }
+      } catch(err) {
+        alert("⚠️ Gagal Supabase: " + (err.message || JSON.stringify(err)));
+        showToast('Gagal menyimpan buku.');
       }
-
-      // Ambil URL publik file PDF tersebut
-      const { data: publicUrlData } = supabase.storage
-        .from('buku-pdf')
-        .getPublicUrl(fileName);
-
-      pdfUrl = publicUrlData.publicUrl;
     }
-
-    const pages = rawContent ? rawContent.split('||').map(p => p.trim()) : ["Halaman 1..."];
-
-    let finalCover = tempCoverBase64 || urlCover;
-    if(!finalCover && bookId) {
-      const existingBook = books.find(b => b.id === bookId);
-      if(existingBook) finalCover = existingBook.cover;
-    }
-    if(!finalCover) finalCover = 'https://placehold.co/400x600/10b981/ffffff?text=Book';
-
-    const bookData = { title, author, category, description, cover: finalCover, pages, pdfUrl };
-
-    if(bookId) {
-      const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-      await setDoc(doc(db, "books", bookId), bookData, { merge: true });
-      showToast('Data & PDF buku berhasil diperbarui!');
-      closeAddBookModal();
-      await loadAllDataFromFirestore();
-      if(selectedBookId === bookId) openBookDetail(bookId);
-    } else {
-      const { addDoc, collection } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-      await addDoc(collection(db, "books"), bookData);
-      showToast('Buku baru & file PDF berhasil disimpan!');
-      closeAddBookModal();
-      await loadAllDataFromFirestore();
-    }
-  } catch(err) {
-    console.error(err);
-      alert("⚠️ Gagal Supabase: " + (err.message || JSON.stringify(err)));
-    showToast('Gagal mengunggah file PDF atau menyimpan buku.');
-  }
-}
 
     window.deleteBook = async function(id) {
       if(confirm('Hapus buku ini dari database cloud?')) {
@@ -1748,9 +1628,7 @@ window.prevReaderPage = function() {
           await deleteDoc(doc(db, "books", id));
           showToast('Buku dihapus.');
           await loadAllDataFromFirestore();
-        } catch(err) {
-          showToast('Gagal menghapus buku.');
-        }
+        } catch(err) {}
       }
     }
 
@@ -1782,9 +1660,7 @@ window.prevReaderPage = function() {
           showToast('Jurnal tersimpan!');
           document.getElementById('journal-form').classList.add('hidden');
           await loadAllDataFromFirestore();
-        } catch(err) {
-          showToast('Gagal simpan jurnal.');
-        }
+        } catch(err) {}
       });
     }
 
@@ -1796,20 +1672,17 @@ window.prevReaderPage = function() {
         if (adminDoc.exists()) userIsAdmin = true;
       } catch(e) {}
 
-      const isOwner = currentUser.uid === journalUserId;
-      if (!isOwner && !userIsAdmin) {
-        alert("Akses ditolak! Anda bukan pemilik jurnal atau admin.");
+      if (currentUser.uid !== journalUserId && !userIsAdmin) {
+        alert("Akses ditolak!");
         return;
       }
 
       if (!confirm("Yakin ingin menghapus jurnal ini?")) return;
       try {
         await deleteDoc(doc(db, "journals", journalId));
-        showToast("Jurnal berhasil dihapus.");
+        showToast("Jurnal dihapus.");
         await loadAllDataFromFirestore();
-      } catch(err) {
-        showToast("Gagal menghapus jurnal.");
-      }
+      } catch(err) {}
     }
 
     function renderJournals() {
@@ -1826,7 +1699,7 @@ window.prevReaderPage = function() {
               <span class="text-slate-900 dark:text-white font-extrabold">${j.book}</span>
               <div class="flex items-center gap-2.5">
                 <span class="text-emerald-600 dark:text-emerald-400">${j.student}</span>
-                ${canDelete ? `<button onclick="deleteJournal('${j.id}', '${j.userId || ''}')" class="text-rose-500 hover:text-rose-700 font-bold" title="Hapus Jurnal"><i class="ph-bold ph-trash text-sm"></i></button>` : ''}
+                ${canDelete ? `<button onclick="deleteJournal('${j.id}', '${j.userId || ''}')" class="text-rose-500 hover:text-rose-700 font-bold"><i class="ph-bold ph-trash text-sm"></i></button>` : ''}
               </div>
             </div>
             <p class="text-slate-600 dark:text-slate-300 italic leading-relaxed">"${j.notes}"</p>
@@ -1869,13 +1742,11 @@ window.prevReaderPage = function() {
 
         try {
           await addDoc(collection(db, "requests"), newR);
-          showToast('Usulan terkirim ke Cloud!');
+          showToast('Usulan terkirim!');
           document.getElementById('req-title').value = '';
           document.getElementById('req-reason').value = '';
           await loadAllDataFromFirestore();
-        } catch(e) {
-          showToast('Gagal kirim usulan.');
-        }
+        } catch(e) {}
       });
     }
 
@@ -1887,20 +1758,17 @@ window.prevReaderPage = function() {
         if (adminDoc.exists()) userIsAdmin = true;
       } catch(e) {}
 
-      const isOwner = currentUser.uid === requestUserId;
-      if (!isOwner && !userIsAdmin) {
-        alert("Akses ditolak! Anda bukan pemilik usulan atau admin.");
+      if (currentUser.uid !== requestUserId && !userIsAdmin) {
+        alert("Akses ditolak!");
         return;
       }
 
       if (!confirm("Yakin ingin menghapus usulan ini?")) return;
       try {
         await deleteDoc(doc(db, "requests", requestId));
-        showToast("Usulan berhasil dihapus.");
+        showToast("Usulan dihapus.");
         await loadAllDataFromFirestore();
-      } catch(err) {
-        showToast("Gagal menghapus usulan.");
-      }
+      } catch(err) {}
     }
 
     function renderRequests() {
@@ -1917,7 +1785,7 @@ window.prevReaderPage = function() {
               <span class="text-slate-900 dark:text-white font-extrabold">${r.title}</span>
               <div class="flex items-center gap-2.5">
                 <span class="text-emerald-600 dark:text-emerald-400">${r.name}</span>
-                ${canDelete ? `<button onclick="deleteRequest('${r.id}', '${r.userId || ''}')" class="text-rose-500 hover:text-rose-700 font-bold" title="Hapus Usulan"><i class="ph-bold ph-trash text-sm"></i></button>` : ''}
+                ${canDelete ? `<button onclick="deleteRequest('${r.id}', '${r.userId || ''}')" class="text-rose-500 hover:text-rose-700 font-bold"><i class="ph-bold ph-trash text-sm"></i></button>` : ''}
               </div>
             </div>
             <p class="text-slate-500 italic leading-relaxed">"${r.reason}"</p>
