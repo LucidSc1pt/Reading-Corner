@@ -1,4 +1,3 @@
-const CACHE_NAME = 'x1-pwa-v3';
 const CACHE_NAME = 'x1-pwa-v4';
 const URLS_TO_CACHE = [
   '/',
