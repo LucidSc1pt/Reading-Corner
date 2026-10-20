@@ -69,17 +69,24 @@
           <button onclick="navigateTo('request')" id="nav-desk-request" class="nav-desk-btn px-4 py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 transition-all hover:text-slate-900">Usul Buku</button>
         </nav>
 
-        <div class="flex items-center gap-2.5">
-          <div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-900/50 shadow-sm text-slate-600 dark:text-slate-300">
+        <div class="flex items-center gap-2">
+            <button id="music-widget-minimized" onclick="toggleMusicWidgetMinimize()" class="flex items-center gap-2.5 dark:bg-slate-900/90 text-white backdrop-blur-xl border border-slate-700/80 p-2 rounded-full shadow-2xl hover:scale-105 transition-all duration-300">
+              <div class="relative flex items-center justify-center">
+                <i class="ph-bold ph-vinyl-record text-base text-emerald-400" id="mini-vinyl-icon"></i>
+                <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 hidden" id="mini-status-pulse"></span>
+              </div>
+                
+            </button>
+          <div class="sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-900/50 shadow-sm text-slate-600 dark:text-slate-300">
             <i class="ph-bold ph-users text-emerald-500 animate-pulse"></i>
-            <span>Online: <span id="visitor-count-badge" class="font-bold">...</span></span>
+            <span><span id="visitor-count-badge" class="font-bold">...</span></span>
           </div>
 
-          <button onclick="toggleDarkMode()" class="p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-all shadow-sm">
+          <button onclick="toggleDarkMode()" class="p-2 rounded-xl border border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-all shadow-sm">
             <i class="ph-bold ph-moon text-base dark:hidden"></i>
             <i class="ph-bold ph-sun text-base hidden dark:block"></i>
           </button>
-          <button id="nav-desk-profile" onclick="navigateTo('profile')" class="nav-desk-btn px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1.5 transition-all border border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-900/50 shadow-sm">
+          <button id="nav-desk-profile" onclick="navigateTo('profile')" class="nav-desk-btn px-2 py-2 rounded-xl backdrop-blur-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1.5 transition-all border border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-900/50 shadow-sm">
             <i class="ph-bold ph-user-circle text-base text-emerald-500"></i> <span class="hidden sm:inline">Profil</span>
           </button>
         </div>
@@ -96,10 +103,10 @@
         <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
         <div class="relative z-10 space-y-3 max-w-2xl">
           <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/20 text-[11px] font-bold backdrop-blur-md shadow-sm">
-            <i class="ph-bold ph-sparkle text-amber-300"></i> Cloud Synced & Supabase Storage
+            <i class="ph-bold ph-sparkle text-amber-300 animate-pulse"></i> Online
           </span>
           <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight">Perpustakaan Digital Kelas X-1</h1>
-          <p class="text-emerald-100 text-xs sm:text-sm leading-relaxed">Jelajahi koleksi buku lengkap, baca PDF langsung mulus tanpa lag, dan bagikan jurnal membacamu bersama teman-teman.</p>
+          <p class="text-emerald-100 text-xs sm:text-sm leading-relaxed">Jelajahi koleksi buku lengkap, baca sesuka hati, dan bagikan jurnal membacamu bersama teman-teman.</p>
         </div>
       </div>
 
@@ -143,7 +150,7 @@
 
       <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-8 shadow-card">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-          <div class="flex flex-col items-center gap-4">
+          <div class="flex grid grid-cols-2 items-center gap-4">
             <img id="detail-cover" class="w-44 sm:w-60 h-64 sm:h-84 object-cover rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800" src="" alt="Cover">
             <div class="flex flex-col items-center justify-center p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 shrink-0 w-full shadow-inner">
               <span class="text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">QR Code Buku</span>
@@ -422,14 +429,6 @@
 
   <!-- WIDGET PEMUTAR MUSIK LO-FI -->
   <div id="music-widget" class="fixed bottom-20 right-4 z-40 transition-all duration-300">
-    <button id="music-widget-minimized" onclick="toggleMusicWidgetMinimize()" class="flex items-center gap-2.5 bg-slate-900/90 text-white backdrop-blur-xl border border-slate-700/80 px-4 py-2.5 rounded-full shadow-2xl hover:scale-105 transition-all">
-      <div class="relative flex items-center justify-center">
-        <i class="ph-bold ph-vinyl-record text-base text-emerald-400" id="mini-vinyl-icon"></i>
-        <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 hidden" id="mini-status-pulse"></span>
-      </div>
-      <span class="text-[11px] font-bold tracking-wide truncate max-w-[100px]" id="mini-track-title">Musik</span>
-      <i class="ph-bold ph-caret-up text-xs text-slate-400"></i>
-    </button>
 
     <div id="music-widget-full" class="hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl p-4 w-72 space-y-3.5 animate-in fade-in zoom-in-95 duration-200">
       <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-800">
@@ -492,7 +491,7 @@
   </div>
 
   <!-- TOAST -->
-  <div id="toast" class="fixed bottom-20 md:bottom-6 right-4 z-50 bg-slate-900 text-white px-4.5 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs transition-all duration-300 translate-y-20 opacity-0 pointer-events-none border border-slate-800"><i class="ph-bold ph-check-circle text-emerald-400 text-base"></i><span id="toast-msg">Info</span></div>
+  <div id="toast" class="fixed bottom-20 md:bottom-6 right-4 z-50 dark:bg-slate-900 dark:text px-4.5 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs transition-all duration-300 translate-y-20 opacity-0 pointer-events-none border border-slate-800"><i class="ph-bold ph-check-circle text-emerald-400 text-base"></i><span id="toast-msg">Info</span></div>
 
   <!-- FIREBASE & MAIN APP SCRIPT -->
   <script type="module">
@@ -875,6 +874,7 @@
 
     async function loadAllDataFromFirestore() {
       try {
+          showToast("Memuat data...");
         const fetchCollection = async (collName) => {
           try {
             return await getDocs(collection(db, collName));
@@ -917,6 +917,7 @@
         renderRequests();
       } catch (err) {
         books = DEFAULT_BOOKS;
+          showToast("Gagal memuat data...");
         renderBooks();
       }
     }
