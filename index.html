@@ -75,7 +75,6 @@
                 <i class="ph-bold ph-vinyl-record text-base text-emerald-400" id="mini-vinyl-icon"></i>
                 <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 hidden" id="mini-status-pulse"></span>
               </div>
-                
             </button>
           <div class="sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-900/50 shadow-sm text-slate-600 dark:text-slate-300">
             <i class="ph-bold ph-users text-emerald-500 animate-pulse"></i>
@@ -409,9 +408,11 @@
           <textarea id="form-book-desc" rows="3" required class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500"></textarea>
         </div>
         <div>
-          <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">Cover URL / Upload File</label>
-          <input type="url" id="form-book-cover-url" placeholder="https://..." class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm mb-1.5 focus:ring-2 focus:ring-emerald-500">
-          <input type="file" accept="image/*" onchange="handleCoverFile(event)" class="w-full text-[10px] text-slate-500">
+          <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">Cover Buku (Upload Gambar ke Supabase)</label>
+          <!-- Input File untuk Cover -->
+          <input type="file" id="form-book-cover-file" accept="image/*" class="w-full text-[10px] text-slate-500 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1.5 mb-1.5">
+          <!-- Input URL Eksternal (Opsional) -->
+          <input type="url" id="form-book-cover-url" placeholder="Atau masukkan Link URL Cover eksternal..." class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500">
         </div>
         <div>
           <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">File PDF Buku (Upload Langsung ke Supabase)</label>
@@ -490,15 +491,18 @@
     </div>
   </div>
 
-  <!-- TOAST -->
-  <div id="toast" class="fixed bottom-20 md:bottom-6 right-4 z-50 dark:bg-slate-900 dark:text px-4.5 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs transition-all duration-300 translate-y-20 opacity-0 pointer-events-none border border-slate-800"><i class="ph-bold ph-check-circle text-emerald-400 text-base"></i><span id="toast-msg">Info</span></div>
+  <!-- TOAST (DIPERBAIKI BUG KELAS WARNANYA) -->
+  <div id="toast" class="fixed bottom-20 md:bottom-6 right-4 z-50 bg-slate-900 dark:bg-slate-800 text-white px-4.5 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs transition-all duration-300 translate-y-20 opacity-0 pointer-events-none border border-slate-800 dark:border-slate-700">
+    <i class="ph-bold ph-check-circle text-emerald-400 text-base"></i>
+    <span id="toast-msg">Info</span>
+  </div>
 
   <!-- FIREBASE & MAIN APP SCRIPT -->
   <script type="module">
     let pdfDoc = null;
     let pdfPageNum = 1;
     let isRenderingPdf = false;
-    let pdfZoomLevel = 1.3; // Default zoom yang pas
+    let pdfZoomLevel = 1.3;
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, addDoc, doc, getDoc, deleteDoc, updateDoc, increment, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -638,6 +642,10 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       initMusicPlayer();
+      // PWA Service Worker Registration
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
+      }
     });
 
     async function trackVisitorCount() {
@@ -656,7 +664,6 @@
       }
     }
 
-    // PERBAIKAN BUG ZOOM CANVAS PDF & MENCEGAH STRETCH / MELAR
     async function renderPdfPage(num) {
       if (!pdfDoc) return;
       isRenderingPdf = true;
@@ -677,11 +684,9 @@
 
       const dpr = window.devicePixelRatio || 1;
       
-      // Atur resolusi internal canvas agar tajam
       canvas.height = viewport.height * dpr;
       canvas.width = viewport.width * dpr;
 
-      // Atur ukuran CSS presisi agar tidak gepeng/melar (stretch) dan memungkinkan scroll
       canvas.style.width = `${viewport.width}px`;
       canvas.style.height = `${viewport.height}px`;
 
@@ -747,7 +752,6 @@
       }
       updateAdminUI();
 
-      // Selesaikan penahan auth saat pertama kali sistem mendeteksinya
       if (authInitializedResolve) {
         authInitializedResolve(user);
         authInitializedResolve = null; 
@@ -836,8 +840,7 @@
 
     const BAD_WORDS = [
       'anjing', 'babi', 'goblok', 'tolol', 'bangsat', 'kontol', 'memek', 
-      'ngentot', 'kampang', 'pantek', 'puki', 'bajingan', 'jancok', 'bebal', 'titit', 'picek', 'hancok', 'diancok', 'asu',
-        'tempek',
+      'ngentot', 'kampang', 'pantek', 'puki', 'bajingan', 'jancok', 'bebal', 'titit', 'picek', 'hancok', 'diancok', 'asu', 'tempek'
     ];
 
     function containsBadWords(text) {
@@ -848,7 +851,6 @@
     const categories = ['Semua', 'Fiksi', 'Non-Fiksi'];
         
     window.onload = async function() {
-      // 1. WAJIB: Tunggu Auth selesai inisialisasi & data Firestore ter-load 100%
       await authInitialized;
       await trackVisitorCount();
       renderCategoryChips();
@@ -857,7 +859,6 @@
       const hash = window.location.hash.substring(1);
       const savedBookId = localStorage.getItem('x1_selected_book');
 
-      // 2. Baru jalankan navigasi setelah data benar-benar siap di memori
       if(hash) {
         if(hash.startsWith('detail-')) {
           await openBookDetail(hash.replace('detail-', ''), false);
@@ -875,7 +876,6 @@
 
     async function loadAllDataFromFirestore() {
       try {
-          showToast("Memuat data...");
         const fetchCollection = async (collName) => {
           try {
             return await getDocs(collection(db, collName));
@@ -918,7 +918,6 @@
         renderRequests();
       } catch (err) {
         books = DEFAULT_BOOKS;
-          showToast("Gagal memuat data...");
         renderBooks();
       }
     }
@@ -1239,14 +1238,12 @@
       selectedBookId = bookId;
       localStorage.setItem('x1_selected_book', bookId);
 
-      // Jika karena suatu hal data books masih kosong, load ulang dulu
       if (!books || books.length === 0 || (books.length === 1 && books[0].id === 'b-1')) {
         await loadAllDataFromFirestore();
       }
 
       const book = books.find(b => b.id === bookId);
       if(!book) {
-        // Jika buku benar-benar tidak ditemukan di database, kembalikan ke katalog
         localStorage.removeItem('x1_selected_book');
         showToast("Buku tidak ditemukan.");
         navigateTo('katalog');
@@ -1456,7 +1453,6 @@
         if (!pdfContainer) {
           pdfContainer = document.createElement('div');
           pdfContainer.id = 'reader-pdf-container';
-          // Dibuat overflow-auto supaya bisa digeser saat di-zoom
           pdfContainer.className = 'w-full flex justify-center items-center overflow-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-900/50 p-4 min-h-[65vh] max-h-[75vh]';
           canvasContainer.prepend(pdfContainer);
         } else {
@@ -1594,38 +1590,66 @@
       const author = document.getElementById('form-book-author').value.trim();
       const category = document.getElementById('form-book-category').value;
       const description = document.getElementById('form-book-desc').value.trim();
-      const urlCover = document.getElementById('form-book-cover-url').value.trim();
+      
+      let urlCover = document.getElementById('form-book-cover-url').value.trim();
+      const coverFileInput = document.getElementById('form-book-cover-file');
 
       let pdfUrl = document.getElementById('form-book-pdf').value.trim();
       const pdfFileInput = document.getElementById('form-book-pdf-file');
 
       try {
-        if (pdfFileInput && pdfFileInput.files[0]) {
-          const pdfFile = pdfFileInput.files[0];
-          showToast('Mengunggah file PDF ke Supabase Storage...');
+        if (coverFileInput && coverFileInput.files[0]) {
+          const coverFile = coverFileInput.files[0];
+          showToast('Mengunggah gambar cover ke Supabase...');
           
-          const fileName = `${Date.now()}_${pdfFile.name}`;
-          const { data, error } = await supabase.storage
+          const coverFileName = `cover_${Date.now()}_${coverFile.name}`;
+          const { data: coverData, error: coverError } = await supabase.storage
             .from('buku-pdf')
-            .upload(fileName, pdfFile);
+            .upload(coverFileName, coverFile);
 
-          if (error) throw new Error(error.message);
+          if (coverError) throw new Error(coverError.message);
 
-          const { data: publicUrlData } = supabase.storage
+          const { data: coverPublicUrl } = supabase.storage
             .from('buku-pdf')
-            .getPublicUrl(fileName);
+            .getPublicUrl(coverFileName);
 
-          pdfUrl = publicUrlData.publicUrl;
+          urlCover = coverPublicUrl.publicUrl;
         }
 
-        let finalCover = tempCoverBase64 || urlCover;
+        if (pdfFileInput && pdfFileInput.files[0]) {
+          const pdfFile = pdfFileInput.files[0];
+          showToast('Mengunggah file PDF ke Supabase...');
+          
+          const pdfFileName = `pdf_${Date.now()}_${pdfFile.name}`;
+          const { data: pdfData, error: pdfError } = await supabase.storage
+            .from('buku-pdf')
+            .upload(pdfFileName, pdfFile);
+
+          if (pdfError) throw new Error(pdfError.message);
+
+          const { data: pdfPublicUrl } = supabase.storage
+            .from('buku-pdf')
+            .getPublicUrl(pdfFileName);
+
+          pdfUrl = pdfPublicUrl.publicUrl;
+        }
+
+        let finalCover = urlCover;
         if(!finalCover && bookId) {
           const existingBook = books.find(b => b.id === bookId);
           if(existingBook) finalCover = existingBook.cover;
         }
         if(!finalCover) finalCover = 'https://placehold.co/400x600/10b981/ffffff?text=Book';
 
-        const bookData = { title, author, category, description, cover: finalCover, pages: ["Halaman 1..."], pdfUrl };
+        const bookData = { 
+          title, 
+          author, 
+          category, 
+          description, 
+          cover: finalCover, 
+          pages: ["Halaman 1..."], 
+          pdfUrl 
+        };
 
         if(bookId) {
           const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
@@ -1637,7 +1661,7 @@
         } else {
           const { addDoc, collection } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
           await addDoc(collection(db, "books"), bookData);
-          showToast('Buku baru & PDF berhasil disimpan!');
+          showToast('Buku baru & file berhasil disimpan!');
           closeAddBookModal();
           await loadAllDataFromFirestore();
         }
