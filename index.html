@@ -642,10 +642,12 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       initMusicPlayer();
-      // PWA Service Worker Registration
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
-      }
+      // PWA Service Worker Registration dengan Scope /
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then(reg => alert(reg))
+            .catch(err => alert(err));
+        }
     });
 
     async function trackVisitorCount() {
