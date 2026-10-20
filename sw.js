@@ -1,69 +1,72 @@
-const CACHE_NAME = 'x1-pwa-v4';
-const URLS_TO_CACHE = [
-  '/',
-  '/index.html',
-  'https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4',
-  'https://unpkg.com/@phosphor-icons/web',
-  'https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap'
+const CACHE_NAME = 'x1-pwa-v6';
+const ASSETS_TO_CACHE = [
+  './',
+  './index.html'
 ];
 
-// 1. Install & langsung simpan index.html ke cache
+// 1. Install: Hanya cache file inti lokal agar aman dari error CORS
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Caching core app assets...');
-      return cache.addAll(URLS_TO_CACHE);
+      return cache.addAll(ASSETS_TO_CACHE);
     })
   );
   self.skipWaiting();
 });
 
-// 2. Aktifkan & bersihkan cache lama
+// 2. Aktifkan & bersihkan cache versi lama
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
+    caches.keys().then((keys) => {
       return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            console.log('Clearing old cache...');
-            return caches.delete(cache);
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
           }
         })
       );
     })
   );
-  return self.clients.claim();
+  self.clients.claim();
 });
 
-// 3. Tangani permintaan (Offline-First Strategy)
+// 3. Fetch: Tangani offline dengan mulus untuk semua aset & halaman
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Abaikan request API/database eksternal (Firebase & Supabase)
+  // Jangan cache request langsung ke API database (Firebase & Supabase)
   if (url.hostname.includes('firebase') || url.hostname.includes('supabase') || url.hostname.includes('googleapis')) {
     return;
   }
 
-  // Khusus untuk navigasi halaman (Refresh / Buka Link)
+  // Khusus untuk navigasi halaman / refresh
   if (req.mode === 'navigate' || req.headers.get('accept').includes('text/html')) {
     event.respondWith(
       fetch(req).catch(() => {
-        // Jika offline/jaringan gagal, panggil index.html dari Cache!
-        return caches.match('/index.html') || caches.match('/');
+        return caches.match('./index.html') || caches.match('/');
       })
     );
     return;
   }
 
-  // Untuk aset statis lainnya
+  // Untuk ikon, font, dan gambar (simpan otomatis saat online, ambil saat offline)
   event.respondWith(
     caches.match(req).then((cachedResponse) => {
       if (cachedResponse) {
         return cachedResponse;
       }
-      return fetch(req).catch(() => {
-        return caches.match('/index.html');
+      return fetch(req).then((networkResponse) => {
+        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type === 'error') {
+          return networkResponse;
+        }
+        const responseToCache = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(req, responseToCache);
+        });
+        return networkResponse;
+      }).catch(() => {
+        return new Response('', { status: 404 });
       });
     })
   );
