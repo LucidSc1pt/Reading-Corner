@@ -505,7 +505,7 @@
     let pdfZoomLevel = 1.3;
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, addDoc, doc, getDoc, deleteDoc, updateDoc, increment, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, addDoc, doc, getDoc, deleteDoc, updateDoc, increment, setDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { 
       getAuth, 
       signInWithPopup, 
@@ -812,6 +812,16 @@
       }
       return actionCallback();
     }
+
+      // Aktifkan Offline Persistence Firestore
+    enableIndexedDbPersistence(db).catch((err) => {
+      if (err.code == 'failed-precondition') {
+        console.log('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+      } else if (err.code == 'unimplemented') {
+        console.log('The current browser does not support all of the features required to enable persistence');
+      }
+    });
+
 
     const DEFAULT_BOOKS = [
       {
