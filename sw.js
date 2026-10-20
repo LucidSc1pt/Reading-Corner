@@ -1,7 +1,11 @@
 const CACHE_NAME = 'x1-pwa-v3';
+const CACHE_NAME = 'x1-pwa-v4';
 const URLS_TO_CACHE = [
   '/',
-  '/index.html'
+  '/index.html',
+  'https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4',
+  'https://unpkg.com/@phosphor-icons/web',
+  'https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap'
 ];
 
 // 1. Install & langsung simpan index.html ke cache
