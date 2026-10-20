@@ -1,59 +1,66 @@
-const CACHE_NAME = 'x1-pwa-v2';
-const assetsToCache = [
-  './',
-  './index.html'
+const CACHE_NAME = 'x1-pwa-v3';
+const URLS_TO_CACHE = [
+  '/',
+  '/index.html'
 ];
 
-// 1. Install Service Worker & Cache file utama
+// 1. Install & langsung simpan index.html ke cache
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(assetsToCache);
+      console.log('Caching core app assets...');
+      return cache.addAll(URLS_TO_CACHE);
     })
   );
   self.skipWaiting();
 });
 
-// 2. Bersihkan cache lama saat ada pembaruan
+// 2. Aktifkan & bersihkan cache lama
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
+    caches.keys().then((cacheNames) => {
       return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
+        cacheNames.map((cache) => {
+          if (cache !== CACHE_NAME) {
+            console.log('Clearing old cache...');
+            return caches.delete(cache);
           }
         })
       );
     })
   );
-  self.clients.claim();
+  return self.clients.claim();
 });
 
-// 3. Tangani Fetch & Refresh (Supaya tidak error saat offline)
+// 3. Tangani permintaan (Offline-First Strategy)
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
+  const req = event.request;
+  const url = new URL(req.url);
 
-  // Abaikan request ke database online (Firebase & Supabase)
+  // Abaikan request API/database eksternal (Firebase & Supabase)
   if (url.hostname.includes('firebase') || url.hostname.includes('supabase') || url.hostname.includes('googleapis')) {
     return;
   }
 
-  // Khusus untuk navigasi/refresh halaman
-  if (event.request.mode === 'navigate') {
+  // Khusus untuk navigasi halaman (Refresh / Buka Link)
+  if (req.mode === 'navigate' || req.headers.get('accept').includes('text/html')) {
     event.respondWith(
-      fetch(event.request).catch(() => {
-        return caches.match('./index.html');
+      fetch(req).catch(() => {
+        // Jika offline/jaringan gagal, panggil index.html dari Cache!
+        return caches.match('/index.html') || caches.match('/');
       })
     );
     return;
   }
 
-  // Untuk aset lain (CSS/ikon/gambar)
+  // Untuk aset statis lainnya
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request).catch(() => {
-        return caches.match('./index.html');
+    caches.match(req).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      return fetch(req).catch(() => {
+        return caches.match('/index.html');
       });
     })
   );
