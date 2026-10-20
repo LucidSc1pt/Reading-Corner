@@ -1,10 +1,10 @@
-const CACHE_NAME = 'x1-pwa-v6';
+const CACHE_NAME = 'x1-pwa-v7';
 const ASSETS_TO_CACHE = [
   './',
   './index.html'
 ];
 
-// 1. Install: Hanya cache file inti lokal agar aman dari error CORS
+// 1. Install Service Worker
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -14,7 +14,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// 2. Aktifkan & bersihkan cache versi lama
+// 2. Bersihkan cache lama
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -30,36 +30,32 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// 3. Fetch: Tangani offline dengan mulus untuk semua aset & halaman
+// 3. Strategi Cache-First untuk Halaman (Mencegah Chrome menampilkan snapshot mati)
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Jangan cache request langsung ke API database (Firebase & Supabase)
+  // Abaikan database online
   if (url.hostname.includes('firebase') || url.hostname.includes('supabase') || url.hostname.includes('googleapis')) {
     return;
   }
 
-  // Khusus untuk navigasi halaman / refresh
+  // Khusus untuk navigasi / refresh halaman
   if (req.mode === 'navigate' || req.headers.get('accept').includes('text/html')) {
     event.respondWith(
-      fetch(req).catch(() => {
-        return caches.match('./index.html') || caches.match('/');
+      caches.match('./index.html').then((cachedResponse) => {
+        // Langsung berikan cache index.html agar JavaScript aktif, jika tidak ada baru coba fetch jaringan
+        return cachedResponse || fetch(req).catch(() => caches.match('./index.html'));
       })
     );
     return;
   }
 
-  // Untuk ikon, font, dan gambar (simpan otomatis saat online, ambil saat offline)
+  // Untuk aset lain (gambar, ikon, dll)
   event.respondWith(
     caches.match(req).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(req).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type === 'error') {
-          return networkResponse;
-        }
+      return cachedResponse || fetch(req).then((networkResponse) => {
+        if (!networkResponse || networkResponse.status !== 200) return networkResponse;
         const responseToCache = networkResponse.clone();
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(req, responseToCache);
