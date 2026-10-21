@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Pojok Baca Digital X-1</title>
-    <link rel="manifest" href="./manifest.json">
+  <link rel="manifest" href="./manifest.json">
   
   <!-- Tailwind CSS v4 -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -31,22 +31,24 @@
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   </script>
-    <script>
+  
+  <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js')
-        .then(() => console.log('SW kepasang!'))
+      navigator.serviceWorker.register('/sw.js', { scope: '/' })
+        .then(reg => console.log('SW kepasang!', reg))
         .catch(err => console.log('SW gagal:', err));
     }
 
-    // Fix badge Online yang di screenshot kamu
     function updateOnlineStatus() {
-      const badge = document.querySelector('[class*="Online"]'); // sesuaikan selector badge kamu
-      if(badge) badge.textContent = navigator.onLine ? 'Online' : 'Offline';
+      const badge = document.getElementById('online-status-badge');
+      if(badge) {
+        badge.innerHTML = `<i class="ph-bold ph-sparkle text-amber-300 animate-pulse"></i> ${navigator.onLine ? 'Online' : 'Offline'}`;
+      }
     }
     window.addEventListener('online', updateOnlineStatus);
     window.addEventListener('offline', updateOnlineStatus);
-    updateOnlineStatus();
-    </script>
+    window.addEventListener('DOMContentLoaded', updateOnlineStatus);
+  </script>
 
   <style>
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -118,7 +120,7 @@
       <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white p-6 sm:p-10 shadow-xl shadow-emerald-600/20">
         <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
         <div class="relative z-10 space-y-3 max-w-2xl">
-          <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/20 text-[11px] font-bold backdrop-blur-md shadow-sm">
+          <span id="online-status-badge" class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/20 text-[11px] font-bold backdrop-blur-md shadow-sm">
             <i class="ph-bold ph-sparkle text-amber-300 animate-pulse"></i> Online
           </span>
           <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight">Perpustakaan Digital Kelas X-1</h1>
@@ -183,7 +185,7 @@
 
             <div class="grid grid-cols-3 gap-2 p-3 max-w-sm bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/80 dark:border-slate-800 text-center text-xs shadow-inner">
               <div><span class="text-slate-400 block text-[9px] uppercase font-bold">Rating</span><span id="detail-rating-num" class="font-extrabold text-amber-500 text-sm">★ 4.8</span></div>
-              <div><span class="text-slate-400 block text-[9px] uppercase font-bold">Halaman</span><span id="detail-pages-count" class="font-extrabold text-sm">120</span></div>
+              <div><span class="text-slate-400 block text-[9px] uppercase font-bold">Halaman</span><span id="detail-pages-count" class="font-extrabold text-sm">...</span></div>
               <div><span class="text-slate-400 block text-[9px] uppercase font-bold">Akses</span><span class="font-extrabold text-emerald-600 text-sm">Supabase</span></div>
             </div>
 
@@ -426,9 +428,7 @@
         </div>
         <div>
           <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">Cover Buku (Upload Gambar ke Supabase)</label>
-          <!-- Input File untuk Cover -->
           <input type="file" id="form-book-cover-file" accept="image/*" class="w-full text-[10px] text-slate-500 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1.5 mb-1.5">
-          <!-- Input URL Eksternal (Opsional) -->
           <input type="url" id="form-book-cover-url" placeholder="Atau masukkan Link URL Cover eksternal..." class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500">
         </div>
         <div>
@@ -447,7 +447,6 @@
 
   <!-- WIDGET PEMUTAR MUSIK LO-FI -->
   <div id="music-widget" class="fixed bottom-20 right-4 z-40 transition-all duration-300">
-
     <div id="music-widget-full" class="hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl p-4 w-72 space-y-3.5 animate-in fade-in zoom-in-95 duration-200">
       <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-800">
         <div class="flex items-center gap-2">
@@ -508,7 +507,7 @@
     </div>
   </div>
 
-  <!-- TOAST (DIPERBAIKI BUG KELAS WARNANYA) -->
+  <!-- TOAST -->
   <div id="toast" class="fixed bottom-20 md:bottom-6 right-4 z-50 bg-slate-900 dark:bg-slate-800 text-white px-4.5 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs transition-all duration-300 translate-y-20 opacity-0 pointer-events-none border border-slate-800 dark:border-slate-700">
     <i class="ph-bold ph-check-circle text-emerald-400 text-base"></i>
     <span id="toast-msg">Info</span>
@@ -554,9 +553,9 @@
     const auth = getAuth(app);
     const googleProvider = new GoogleAuthProvider();
 
-      enableIndexedDbPersistence(db).then(() => {
-          console.log('Firebase offline persistence aktif!');
-      }).catch((err) => console.log(err.code));
+    enableIndexedDbPersistence(db).then(() => {
+        console.log('Firebase offline persistence aktif!');
+    }).catch((err) => console.log(err.code));
       
     let isAdmin = false;
     let userRole = ""; 
@@ -597,7 +596,6 @@
       player.src = track.url;
       document.getElementById('current-track-title').textContent = track.title;
       document.getElementById('current-track-artist').textContent = track.artist;
-      document.getElementById('mini-track-title').textContent = track.title;
       document.getElementById('playlist-select').value = index;
     }
 
@@ -663,12 +661,6 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       initMusicPlayer();
-      // PWA Service Worker Registration dengan Scope /
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('/sw.js', { scope: '/' })
-            .then(reg => alert(reg))
-            .catch(err => alert(err));
-        }
     });
 
     async function trackVisitorCount() {
@@ -685,6 +677,13 @@
       } catch (err) {
         document.getElementById('visitor-count-badge').textContent = "1";
       }
+    }
+
+    // Helper robust untuk memuat PDF dari URL (mendukung file besar & mengatasi masalah Range Request Storage)
+    async function loadPdfDoc(url) {
+      const response = await fetch(url);
+      const arrayBuffer = await response.arrayBuffer();
+      return await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     }
 
     async function renderPdfPage(num) {
@@ -918,14 +917,11 @@
 
         if (bookSnap.docs.length > 0) {
           books = bookSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          // SIMPAN KE CACHE LOKAL UNTUK OFFLINE
           localStorage.setItem('x1_books_cache', JSON.stringify(books));
         } else {
-          // Coba ambil dari cache lokal dulu
           const cached = localStorage.getItem('x1_books_cache');
           if (cached) {
             books = JSON.parse(cached);
-            console.log('Pakai cache buku offline:', books.length);
           } else {
             books = bookSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             if (books.length === 0) books = DEFAULT_BOOKS;
@@ -954,7 +950,6 @@
         renderLeaderboard();
         renderRequests();
       } catch (e) {
-        // Fallback total offline
         const cached = localStorage.getItem('x1_books_cache');
         if (cached) {
           books = JSON.parse(cached);
@@ -1297,7 +1292,20 @@
       document.getElementById('detail-category').textContent = book.category;
       document.getElementById('detail-description').textContent = book.description;
       document.getElementById('detail-cover').src = book.cover;
-      document.getElementById('detail-pages-count').textContent = (book.pages ? book.pages.length : 1);
+      
+      // PERBAIKAN BUG: Hitung jumlah halaman asli jika menggunakan PDF, atau dari properti pages
+      const pagesCountEl = document.getElementById('detail-pages-count');
+      pagesCountEl.textContent = '...';
+
+      if (book.pdfUrl) {
+        loadPdfDoc(book.pdfUrl).then(doc => {
+          pagesCountEl.textContent = doc.numPages;
+        }).catch(() => {
+          pagesCountEl.textContent = book.pages ? book.pages.length : 1;
+        });
+      } else {
+        pagesCountEl.textContent = book.pages ? book.pages.length : 1;
+      }
 
       const shareableUrl = window.location.href.split('#')[0] + '#detail-' + bookId;
       document.getElementById('detail-qrcode').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(shareableUrl)}`;
@@ -1504,12 +1512,13 @@
         pdfContainer.innerHTML = `<canvas id="pdf-render-canvas" class="rounded-xl shadow-lg"></canvas>`;
 
         try {
-          showToast('Memuat dokumen PDF dari Supabase...');
+          showToast('Memuat dokumen PDF besar dari Supabase...');
           pdfPageNum = 1; 
-          pdfDoc = await pdfjsLib.getDocument(book.pdfUrl).promise;
+          // PERBAIKAN BUG: Menggunakan fungsi loadPdfDoc berbasis ArrayBuffer agar tidak gagal di file besar/banyak halaman
+          pdfDoc = await loadPdfDoc(book.pdfUrl);
           await renderPdfPage(pdfPageNum);
         } catch (err) {
-          pdfContainer.innerHTML = `<p class="text-rose-500 text-xs text-center p-4">Gagal memuat halaman PDF.</p>`;
+          pdfContainer.innerHTML = `<p class="text-rose-500 text-xs text-center p-4">Gagal memuat halaman PDF. Pastikan file dokumen valid.</p>`;
         }
 
       } else {
