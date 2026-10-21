@@ -189,7 +189,7 @@
               <div><span class="text-slate-400 block text-[9px] uppercase font-bold">Akses</span><span class="font-extrabold text-emerald-600 text-sm">Supabase</span></div>
             </div>
 
-            <!-- CONTAINER TOMBOL AKSI BACA DINAMIS (PDF / EXTERNAL LINK) -->
+            <!-- CONTAINER TOMBOL AKSI BACA DINAMIS (PDF / EMBED FRAME / EXTERNAL LINK) -->
             <div id="detail-action-buttons" class="flex flex-wrap gap-3 pt-2"></div>
 
             <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
@@ -434,8 +434,8 @@
           <input type="url" id="form-book-pdf" placeholder="Atau Link PDF eksternal..." class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500">
         </div>
         <div>
-          <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">Link Sumber Eksternal / Web Baca (Opsional)</label>
-          <input type="url" id="form-book-external-url" placeholder="https://contoh.com/buku-resmi" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500">
+          <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">Link Sumber Eksternal / Web Baca (Untuk Embed Frame)</label>
+          <input type="url" id="form-book-external-url" placeholder="https://contoh.com/baca-buku" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500">
         </div>
 
         <div class="flex justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
@@ -1307,7 +1307,7 @@
         pagesCountEl.textContent = book.pages ? book.pages.length : 1;
       }
 
-      // RENDER TOMBOL AKSI BERDASARKAN KETERSEDIAAN PDF & EXTERNAL LINK
+      // RENDER TOMBOL AKSI BERDASARKAN KETERSEDIAAN PDF & EXTERNAL LINK (EMBED FRAME)
       const actionButtonsContainer = document.getElementById('detail-action-buttons');
       let buttonsHtml = '';
 
@@ -1321,8 +1321,11 @@
 
       if (book.externalUrl) {
         buttonsHtml += `
-          <a href="${book.externalUrl}" target="_blank" class="flex-1 sm:flex-none px-6 py-3.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white text-xs sm:text-sm font-bold rounded-2xl shadow-xl shadow-cyan-500/25 flex items-center justify-center gap-2.5 transition-all hover:scale-[1.02]">
-            <i class="ph-bold ph-globe text-lg"></i> Buka Link Sumber Resmi ↗
+          <button onclick="openEmbedReaderPage()" class="flex-1 sm:flex-none px-6 py-3.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white text-xs sm:text-sm font-bold rounded-2xl shadow-xl shadow-cyan-500/25 flex items-center justify-center gap-2.5 transition-all hover:scale-[1.02]">
+            <i class="ph-bold ph-monitor-play text-lg"></i> Baca di Frame (Embed)
+          </button>
+          <a href="${book.externalUrl}" target="_blank" class="flex-1 sm:flex-none px-4 py-3.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-bold rounded-2xl flex items-center justify-center gap-2 transition-all">
+            <i class="ph-bold ph-arrow-square-out text-base"></i> Tab Baru ↗
           </a>
         `;
       }
@@ -1508,7 +1511,49 @@
       readerCurrentPage = 0;
       const savedReaderTheme = localStorage.getItem('x1_reader_theme') || 'light';
       applyReaderTheme(savedReaderTheme);
+      
+      const iframeContainer = document.getElementById('reader-iframe-container');
+      if(iframeContainer) iframeContainer.classList.add('hidden');
+      
       renderReaderContent();
+      navigateTo('reader');
+    }
+
+    // FUNGSI UNTUK MEMBUKA BUKU DI EMBED FRAME (IFRAME)
+    window.openEmbedReaderPage = function() {
+      const book = books.find(b => b.id === selectedBookId);
+      if (!book || !book.externalUrl) return;
+
+      const savedReaderTheme = localStorage.getItem('x1_reader_theme') || 'light';
+      applyReaderTheme(savedReaderTheme);
+
+      const canvasContainer = document.getElementById('reader-canvas');
+      const textCanvas = document.getElementById('reader-body-text');
+      const pdfContainer = document.getElementById('reader-pdf-container');
+      const paginationControls = document.getElementById('reader-pagination-footer');
+
+      if (textCanvas) textCanvas.classList.add('hidden');
+      if (pdfContainer) pdfContainer.classList.add('hidden');
+      if (paginationControls) paginationControls.classList.add('hidden');
+
+      let iframeContainer = document.getElementById('reader-iframe-container');
+      if (!iframeContainer) {
+        iframeContainer = document.createElement('div');
+        iframeContainer.id = 'reader-iframe-container';
+        iframeContainer.className = 'w-full h-[65vh] flex flex-col rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-slate-100 dark:bg-slate-900 shadow-inner';
+        canvasContainer.prepend(iframeContainer);
+      } else {
+        iframeContainer.classList.remove('hidden');
+      }
+
+      iframeContainer.innerHTML = `
+        <div class="flex items-center justify-between px-4 py-2.5 bg-slate-200 dark:bg-slate-800 border-b border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 shrink-0">
+          <span class="flex items-center gap-1.5"><i class="ph-bold ph-globe text-emerald-500"></i> Mode Embed Frame (Sumber Eksternal)</span>
+          <a href="${book.externalUrl}" target="_blank" class="text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 font-semibold">Buka Fullscreen <i class="ph-bold ph-arrow-square-out text-sm"></i></a>
+        </div>
+        <iframe src="${book.externalUrl}" class="w-full flex-1 border-0" allowfullscreen></iframe>
+      `;
+
       navigateTo('reader');
     }
 
@@ -1519,7 +1564,9 @@
       const canvasContainer = document.getElementById('reader-canvas');
       const textCanvas = document.getElementById('reader-body-text');
       const paginationControls = document.getElementById('reader-pagination-footer');
+      const iframeContainer = document.getElementById('reader-iframe-container');
 
+      if (iframeContainer) iframeContainer.classList.add('hidden');
       if (paginationControls) paginationControls.classList.remove('hidden');
 
       if (book.pdfUrl) {
