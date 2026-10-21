@@ -554,6 +554,10 @@
     const auth = getAuth(app);
     const googleProvider = new GoogleAuthProvider();
 
+      enableIndexedDbPersistence(db).then(() => {
+          console.log('Firebase offline persistence aktif!');
+      }).catch((err) => console.log(err.code));
+      
     let isAdmin = false;
     let userRole = ""; 
     let currentUser = null;
@@ -899,6 +903,7 @@
           try {
             return await getDocs(collection(db, collName));
           } catch (e) {
+            console.log('Firestore offline untuk', collName, e);
             return { docs: [] };
           }
         };
@@ -911,8 +916,21 @@
           fetchCollection("requests")
         ]);
 
-        books = bookSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if (books.length === 0) books = DEFAULT_BOOKS;
+        if (bookSnap.docs.length > 0) {
+          books = bookSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          // SIMPAN KE CACHE LOKAL UNTUK OFFLINE
+          localStorage.setItem('x1_books_cache', JSON.stringify(books));
+        } else {
+          // Coba ambil dari cache lokal dulu
+          const cached = localStorage.getItem('x1_books_cache');
+          if (cached) {
+            books = JSON.parse(cached);
+            console.log('Pakai cache buku offline:', books.length);
+          } else {
+            books = bookSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            if (books.length === 0) books = DEFAULT_BOOKS;
+          }
+        }
 
         reviews = {};
         revSnap.docs.forEach(d => {
@@ -935,11 +953,16 @@
         renderJournals();
         renderLeaderboard();
         renderRequests();
-      } catch (err) {
-        books = DEFAULT_BOOKS;
-        renderBooks();
+      } catch (e) {
+        // Fallback total offline
+        const cached = localStorage.getItem('x1_books_cache');
+        if (cached) {
+          books = JSON.parse(cached);
+          renderBooks();
+          showToast('Mode offline - data buku dari cache');
+        }
       }
-    }
+    } 
 
     async function updateUserProfileUI(user) {
       const avatarImg = document.getElementById('profile-avatar-img');
