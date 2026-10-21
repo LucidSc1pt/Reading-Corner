@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Pojok Baca Digital X-1</title>
+    <link rel="manifest" href="./manifest.json">
   
   <!-- Tailwind CSS v4 -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -30,6 +31,22 @@
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   </script>
+    <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js')
+        .then(() => console.log('SW kepasang!'))
+        .catch(err => console.log('SW gagal:', err));
+    }
+
+    // Fix badge Online yang di screenshot kamu
+    function updateOnlineStatus() {
+      const badge = document.querySelector('[class*="Online"]'); // sesuaikan selector badge kamu
+      if(badge) badge.textContent = navigator.onLine ? 'Online' : 'Offline';
+    }
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
+    </script>
 
   <style>
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -812,16 +829,6 @@
       }
       return actionCallback();
     }
-
-      // Aktifkan Offline Persistence Firestore
-    enableIndexedDbPersistence(db).catch((err) => {
-      if (err.code == 'failed-precondition') {
-        console.log('Multiple tabs open, persistence can only be enabled in one tab at a time.');
-      } else if (err.code == 'unimplemented') {
-        console.log('The current browser does not support all of the features required to enable persistence');
-      }
-    });
-
 
     const DEFAULT_BOOKS = [
       {
