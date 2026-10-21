@@ -189,11 +189,8 @@
               <div><span class="text-slate-400 block text-[9px] uppercase font-bold">Akses</span><span class="font-extrabold text-emerald-600 text-sm">Supabase</span></div>
             </div>
 
-            <div class="flex flex-wrap gap-3 pt-2">
-              <button onclick="openReaderPage()" class="flex-1 sm:flex-none px-6 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs sm:text-sm font-bold rounded-2xl shadow-xl shadow-emerald-500/25 flex items-center justify-center gap-2.5 transition-all hover:scale-[1.02]">
-                <i class="ph-bold ph-book-open text-lg"></i> Mulai Membaca Penuh
-              </button>
-            </div>
+            <!-- CONTAINER TOMBOL AKSI BACA DINAMIS (PDF / EXTERNAL LINK) -->
+            <div id="detail-action-buttons" class="flex flex-wrap gap-3 pt-2"></div>
 
             <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
               <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Deskripsi & Sinopsis</h3>
@@ -432,9 +429,13 @@
           <input type="url" id="form-book-cover-url" placeholder="Atau masukkan Link URL Cover eksternal..." class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500">
         </div>
         <div>
-          <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">File PDF Buku (Upload Langsung ke Supabase)</label>
+          <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">File PDF Buku (Opsional - Supabase)</label>
           <input type="file" id="form-book-pdf-file" accept="application/pdf" class="w-full text-[10px] text-slate-500 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1.5 mb-1.5">
-          <input type="url" id="form-book-pdf" placeholder="Atau masukkan Link PDF eksternal..." class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500">
+          <input type="url" id="form-book-pdf" placeholder="Atau Link PDF eksternal..." class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <div>
+          <label class="block font-bold mb-1 text-slate-600 dark:text-slate-400">Link Sumber Eksternal / Web Baca (Opsional)</label>
+          <input type="url" id="form-book-external-url" placeholder="https://contoh.com/buku-resmi" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500">
         </div>
 
         <div class="flex justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
@@ -679,9 +680,9 @@
       }
     }
 
-    // Helper robust untuk memuat PDF dari URL (mendukung file besar & mengatasi masalah Range Request Storage)
     async function loadPdfDoc(url) {
       const response = await fetch(url);
+      if (!response.ok) throw new Error("Gagal mengambil file PDF dari server.");
       const arrayBuffer = await response.arrayBuffer();
       return await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     }
@@ -1293,7 +1294,6 @@
       document.getElementById('detail-description').textContent = book.description;
       document.getElementById('detail-cover').src = book.cover;
       
-      // PERBAIKAN BUG: Hitung jumlah halaman asli jika menggunakan PDF, atau dari properti pages
       const pagesCountEl = document.getElementById('detail-pages-count');
       pagesCountEl.textContent = '...';
 
@@ -1306,6 +1306,32 @@
       } else {
         pagesCountEl.textContent = book.pages ? book.pages.length : 1;
       }
+
+      // RENDER TOMBOL AKSI BERDASARKAN KETERSEDIAAN PDF & EXTERNAL LINK
+      const actionButtonsContainer = document.getElementById('detail-action-buttons');
+      let buttonsHtml = '';
+
+      if (book.pdfUrl) {
+        buttonsHtml += `
+          <button onclick="openReaderPage()" class="flex-1 sm:flex-none px-6 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs sm:text-sm font-bold rounded-2xl shadow-xl shadow-emerald-500/25 flex items-center justify-center gap-2.5 transition-all hover:scale-[1.02]">
+            <i class="ph-bold ph-book-open text-lg"></i> Mulai Membaca PDF
+          </button>
+        `;
+      }
+
+      if (book.externalUrl) {
+        buttonsHtml += `
+          <a href="${book.externalUrl}" target="_blank" class="flex-1 sm:flex-none px-6 py-3.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white text-xs sm:text-sm font-bold rounded-2xl shadow-xl shadow-cyan-500/25 flex items-center justify-center gap-2.5 transition-all hover:scale-[1.02]">
+            <i class="ph-bold ph-globe text-lg"></i> Buka Link Sumber Resmi ↗
+          </a>
+        `;
+      }
+
+      if (!book.pdfUrl && !book.externalUrl) {
+        buttonsHtml = `<p class="text-xs text-slate-400 italic">Belum ada tautan baca atau file PDF untuk buku ini.</p>`;
+      }
+
+      actionButtonsContainer.innerHTML = buttonsHtml;
 
       const shareableUrl = window.location.href.split('#')[0] + '#detail-' + bookId;
       document.getElementById('detail-qrcode').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(shareableUrl)}`;
@@ -1509,13 +1535,18 @@
           pdfContainer.classList.remove('hidden');
         }
 
-        pdfContainer.innerHTML = `<canvas id="pdf-render-canvas" class="rounded-xl shadow-lg"></canvas>`;
+        pdfContainer.innerHTML = `
+          <div class="flex flex-col items-center justify-center p-8 space-y-3 text-center my-auto">
+            <div class="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-xs text-slate-300 font-medium">Sedang memuat dokumen PDF... Mohon tunggu sebentar.</p>
+          </div>
+        `;
 
         try {
-          showToast('Memuat dokumen PDF besar dari Supabase...');
           pdfPageNum = 1; 
-          // PERBAIKAN BUG: Menggunakan fungsi loadPdfDoc berbasis ArrayBuffer agar tidak gagal di file besar/banyak halaman
           pdfDoc = await loadPdfDoc(book.pdfUrl);
+          
+          pdfContainer.innerHTML = `<canvas id="pdf-render-canvas" class="rounded-xl shadow-lg"></canvas>`;
           await renderPdfPage(pdfPageNum);
         } catch (err) {
           pdfContainer.innerHTML = `<p class="text-rose-500 text-xs text-center p-4">Gagal memuat halaman PDF. Pastikan file dokumen valid.</p>`;
@@ -1596,6 +1627,7 @@
       document.getElementById('form-book-desc').value = "";
       document.getElementById('form-book-cover-url').value = "";
       document.getElementById('form-book-pdf').value = "";
+      document.getElementById('form-book-external-url').value = "";
       const pdfFileEl = document.getElementById('form-book-pdf-file');
       if(pdfFileEl) pdfFileEl.value = "";
       tempCoverBase64 = "";
@@ -1614,6 +1646,7 @@
       document.getElementById('form-book-desc').value = book.description || "";
       document.getElementById('form-book-cover-url').value = book.cover || "";
       document.getElementById('form-book-pdf').value = book.pdfUrl || "";
+      document.getElementById('form-book-external-url').value = book.externalUrl || "";
       const pdfFileEl = document.getElementById('form-book-pdf-file');
       if(pdfFileEl) pdfFileEl.value = "";
       tempCoverBase64 = "";
@@ -1641,6 +1674,7 @@
       const author = document.getElementById('form-book-author').value.trim();
       const category = document.getElementById('form-book-category').value;
       const description = document.getElementById('form-book-desc').value.trim();
+      const externalUrl = document.getElementById('form-book-external-url').value.trim();
       
       let urlCover = document.getElementById('form-book-cover-url').value.trim();
       const coverFileInput = document.getElementById('form-book-cover-file');
@@ -1699,7 +1733,8 @@
           description, 
           cover: finalCover, 
           pages: ["Halaman 1..."], 
-          pdfUrl 
+          pdfUrl,
+          externalUrl 
         };
 
         if(bookId) {
@@ -1712,7 +1747,7 @@
         } else {
           const { addDoc, collection } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
           await addDoc(collection(db, "books"), bookData);
-          showToast('Buku baru & file berhasil disimpan!');
+          showToast('Buku baru & tautan berhasil disimpan!');
           closeAddBookModal();
           await loadAllDataFromFirestore();
         }
