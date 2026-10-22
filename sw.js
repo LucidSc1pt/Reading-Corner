@@ -2,7 +2,8 @@ const CACHE_NAME = 'x1-pwa-v6';
 const STATIC_ASSETS = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  './image/app_reading_x_1_logo.png'
 ];
 
 self.addEventListener('install', (e) => {
