@@ -619,7 +619,7 @@
     let currentUser = null;
     let tempAvatarBase64 = "";
 
-    // Fungsi Double-Check Admin langsung ke Firestore (Menggantikan ketergantungan pada variabel isAdmin statis)
+    // Fungsi Double-Check Admin langsung ke Firestore
     async function verifyAdminAccess() {
       if (!currentUser) return false;
       try {
@@ -1696,23 +1696,6 @@
         return; 
       }
 
-      container.innerHTML = bookRev.map(async (r) => {
-        const isVerifiedAdmin = await verifyAdminAccess();
-        const isOwnerOrAdmin = isVerifiedAdmin || (currentUser && currentUser.uid === r.userId);
-        return `
-          <div class="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs space-y-1.5 shadow-sm">
-            <div class="flex justify-between items-center font-bold">
-              <span class="text-emerald-600 dark:text-emerald-400">${r.name}</span>
-              <div class="flex items-center gap-2">
-                <span class="text-amber-500">${'★'.repeat(r.rating)}</span>
-                ${isOwnerOrAdmin ? `<button onclick="deleteReview('${r.id}')" class="text-rose-500 hover:underline text-[11px] font-bold"><i class="ph-bold ph-trash"></i> Hapus</button>` : ''}
-              </div>
-            </div>
-            <p class="text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">${r.text}</p>
-          </div>
-        `;
-      });
-      // Synchronous mapping fallback safety
       container.innerHTML = bookRev.map(r => {
         const isOwnerOrAdmin = (currentUser && currentUser.uid === r.userId);
         return `
@@ -2199,32 +2182,37 @@
       document.getElementById('add-book-modal').classList.add('hidden');
     }
 
+    const BUCKET_NAME = 'buku-pdf';
+
     async function uploadToStorage(folder, file) {
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
       const path = `${folder}/${Date.now()}_${safeName}`;
-      const { error } = await supabase.storage.from('books').upload(path, file, {
+      
+      const { error } = await supabase.storage.from(BUCKET_NAME).upload(path, file, {
         cacheControl: '3600',
         upsert: false,
         contentType: file.type || (folder === 'pdfs' ? 'application/pdf' : undefined)
       });
-      if (error) {
-        throw new Error(`Upload ${folder} gagal: ${error.message}`);
-      }
-      const { data: publicData } = supabase.storage.from('books').getPublicUrl(path);
+      
+      if (error) throw new Error(`Upload ${folder} gagal: ${error.message}`);
+      
+      const { data: publicData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(path);
       return { url: publicData.publicUrl, path };
     }
 
     async function deleteFromStorage(path) {
       if (!path) return;
       try {
-        const { error } = await supabase.storage.from('books').remove([path]);
+        const { error } = await supabase.storage.from(BUCKET_NAME).remove([path]);
         if (error) console.warn('Hapus file gagal:', path, error.message);
       } catch (e) { console.warn('Hapus file error:', e); }
     }
 
     function storagePathFromUrl(url) {
-      if (!url || !url.includes('/storage/v1/object/public/books/')) return null;
-      const parts = url.split('/storage/v1/object/public/books/');
+      if (!url) return null;
+      const searchString = `/storage/v1/object/public/${BUCKET_NAME}/`;
+      if (!url.includes(searchString)) return null;
+      const parts = url.split(searchString);
       return parts[1] || null;
     }
 
@@ -2325,8 +2313,9 @@
       }
     }
 
+    // Menggunakan backend verifyAdminAccess() sepenuhnya menggantikan isAdmin lokal
     window.deleteBook = async function(bookId) {
-      if(!(await verifyAdminAccess())) {
+      if (!(await verifyAdminAccess())) {
         alert("Akses ditolak! Anda bukan admin.");
         return;
       }
@@ -2343,7 +2332,7 @@
             storagePathFromUrl(book.pdfUrl)
           ].filter(Boolean);
           if (paths.length > 0) {
-            const { error } = await supabase.storage.from('books').remove(paths);
+            const { error } = await supabase.storage.from(BUCKET_NAME).remove(paths);
             if (error) console.warn('Gagal hapus file buku:', error.message);
           }
         }
@@ -2379,27 +2368,35 @@
 
         const allFiles = [];
 
-        async function listAll(folder) {
+        async function listFolder(folderPath) {
           let offset = 0;
           const limit = 1000;
           while (true) {
-            const { data, error } = await supabase.storage.from('books').list(folder, { limit, offset });
-            if (error) throw new Error(`Gagal list ${folder}: ${error.message}`);
+            const { data, error } = await supabase.storage.from(BUCKET_NAME).list(folderPath, { limit, offset });
+            if (error) throw new Error(`Gagal list ${folderPath || 'root'}: ${error.message}`);
             if (!data || data.length === 0) break;
+            
             data.forEach(f => {
               if (!f.name || f.name === '.emptyFolderPlaceholder') return;
               if (f.id === null && f.metadata === null) return;
-              allFiles.push({ path: `${folder}/${f.name}`, name: f.name, folder });
+              
+              allFiles.push({ 
+                path: folderPath ? `${folderPath}/${f.name}` : f.name, 
+                name: f.name, 
+                folder: folderPath 
+              });
             });
+            
             if (data.length < limit) break;
             offset += limit;
           }
         }
 
-        await listAll('covers');
-        await listAll('pdfs');
+        await listFolder(''); 
+        await listFolder('covers');
+        await listFolder('pdfs');
 
-        const baseUrl = `${SUPABASE_URL}/storage/v1/object/public/books/`;
+        const baseUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/`;
         const orphans = allFiles.filter(f => {
           const fullUrl = baseUrl + f.path;
           return !usedUrls.has(fullUrl);
@@ -2407,12 +2404,13 @@
 
         if (orphans.length === 0) {
           showToast('✅ Semua bersih! Tidak ada file yatim.');
-          alert(`✅ Bersih!\n\nTotal file di storage: ${allFiles.length}\nFile yatim: 0`);
+          alert(`✅ Bersih!\n\nTotal file diperiksa: ${allFiles.length}\nFile yatim: 0`);
           return;
         }
 
-        const preview = orphans.slice(0, 8).map(o => '• ' + o.path).join('\n');
-        const more = orphans.length > 8 ? `\n... dan ${orphans.length - 8} file lainnya` : '';
+        const preview = orphans.slice(0, 5).map(o => '• ' + o.path).join('\n');
+        const more = orphans.length > 5 ? `\n... dan ${orphans.length - 5} file lainnya` : '';
+        
         const ok = confirm(
           `Ditemukan ${orphans.length} file yatim dari total ${allFiles.length} file:\n\n` +
           preview + more +
@@ -2427,7 +2425,7 @@
         const batchSize = 50;
         for (let i = 0; i < orphans.length; i += batchSize) {
           const batch = orphans.slice(i, i + batchSize).map(o => o.path);
-          const { error } = await supabase.storage.from('books').remove(batch);
+          const { error } = await supabase.storage.from(BUCKET_NAME).remove(batch);
           if (error) {
             console.warn('Batch delete error:', error.message);
           } else {
@@ -2435,19 +2433,19 @@
           }
         }
 
-        showToast(`✅ Selesai! ${deleted} dari ${orphans.length} file yatim dihapus.`);
+        showToast(`✅ Selesai! ${deleted} file yatim dihapus.`);
         alert(
           `✅ Cleanup selesai!\n\n` +
           `Total file diperiksa : ${allFiles.length}\n` +
-          `File masih dipakai    : ${allFiles.length - orphans.length}\n` +
-          `File yatim dihapus   : ${deleted}\n` +
-          `Gagal dihapus        : ${orphans.length - deleted}`
+          `File dipertahankan    : ${allFiles.length - orphans.length}\n` +
+          `File yatim dihapus   : ${deleted}`
         );
       } catch (err) {
         console.error('Cleanup error:', err);
         alert('❌ Cleanup gagal:\n\n' + err.message);
       }
     };
+
   </script>
 </body>
 </html>
