@@ -206,7 +206,7 @@
         <button id="detail-fav-btn" onclick="toggleCurrentBookmark()" class="p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 hover:text-amber-400 shadow-card transition-all flex items-center gap-2">
           <i class="ph-bold ph-star text-lg" id="detail-fav-icon"></i>
           <span id="detail-fav-count" class="text-xs font-bold text-slate-700 dark:text-slate-300">0</span>
-        </>
+        </button>
       </div>
 
       <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-8 shadow-card">
@@ -405,6 +405,9 @@
             <span id="reports-count-badge" class="bg-rose-500 text-white font-extrabold text-[10px] px-2.5 py-0.5 rounded-full shadow-sm">0</span>
           </div>
           <div id="reports-list-container" class="space-y-2.5 max-h-60 overflow-y-auto"></div>
+          <button onclick="cleanupOrphanedFiles()" class="w-full mt-3 py-2.5 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+            <i class="ph-bold ph-broom text-base"></i> Bersihkan File Yatim di Storage
+          </button>
         </div>
 
         <!-- Form Edit Profil -->
@@ -573,7 +576,7 @@
     let pdfPageNum = 1;
     let isRenderingPdf = false;
     let pdfZoomLevel = 1.3;
-    const pdfDocCache = {}; // Cache PDF untuk mempercepat pembukaan dokumen
+    const pdfDocCache = {};
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, addDoc, doc, getDoc, deleteDoc, updateDoc, increment, setDoc, enableIndexedDbPersistence, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -612,10 +615,24 @@
         console.log('Firebase offline persistence aktif!');
     }).catch((err) => console.log(err.code));
       
-    let isAdmin = false;
     let userRole = ""; 
     let currentUser = null;
     let tempAvatarBase64 = "";
+
+    // Fungsi Double-Check Admin langsung ke Firestore (Menggantikan ketergantungan pada variabel isAdmin statis)
+    async function verifyAdminAccess() {
+      if (!currentUser) return false;
+      try {
+        const adminDoc = await getDoc(doc(db, "admins", currentUser.uid));
+        if (adminDoc.exists()) {
+          userRole = adminDoc.data().role || "Admin";
+          return true;
+        }
+      } catch (err) {
+        console.error("Gagal verifikasi admin:", err);
+      }
+      return false;
+    }
 
     const PLAYLIST = [
       {
@@ -749,14 +766,11 @@
     async function loadPdfDoc(url) {
       if (pdfDocCache[url]) return pdfDocCache[url];
       try {
-        // Pakai URL langsung → PDF.js otomatis pakai HTTP Range Request
-        // Hanya download metadata + halaman yang dibutuhkan (jauh lebih cepat)
         const loadingTask = pdfjsLib.getDocument(url);
         const doc = await loadingTask.promise;
         pdfDocCache[url] = doc;
         return doc;
       } catch (rangeErr) {
-        // Fallback ke full download kalau server tidak support range
         const response = await fetch(url);
         if (!response.ok) throw new Error("Gagal mengambil file PDF dari server.");
         const arrayBuffer = await response.arrayBuffer();
@@ -839,23 +853,12 @@
 
     onAuthStateChanged(auth, async (user) => {
       currentUser = user;
-      isAdmin = false;
       userRole = "";
       
       if (user) {
-        try {
-          const adminDoc = await getDoc(doc(db, "admins", user.uid));
-          if (adminDoc.exists()) {
-            isAdmin = true;
-            userRole = adminDoc.data().role || "Admin";
-          }
-        } catch (err) {
-          console.error("Gagal memeriksa status admin:", err);
-        }
         await updateUserProfileUI(user);
       } else {
         currentUser = null;
-        isAdmin = false;
         userRole = "";
         await updateUserProfileUI(null);
       }
@@ -961,8 +964,6 @@
       const lower = text.toLowerCase();
       return BAD_WORDS.some(word => lower.includes(word));
     }
-
-    const categories = ['Semua', 'Fiksi', 'Non-Fiksi'];
         
     window.onload = async function() {
       await authInitialized;
@@ -979,17 +980,16 @@
               localStorage.setItem('x1_books_cache', JSON.stringify(books));
               clearTimeout(snapshotRenderTimeout);
               snapshotRenderTimeout = setTimeout(() => {
-                // Skip render grid kalau sedang di detail/reader (hemat CPU)
                 const katalogView = document.getElementById('view-katalog');
                 if (katalogView && !katalogView.classList.contains('hidden')) {
                   renderBooks();
+                  renderCategoryChips();
                 }
                 updateCollectionStats();
                 if (selectedBookId) updateBookDetailStats(selectedBookId);
               }, 150);
             }
-          },
-          //(err) => console.warn("Books snapshot error:", err)
+          }
         );
 
       await loadAllDataFromFirestore();
@@ -1081,6 +1081,7 @@
         requests = rSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
         renderBooks();
+        renderCategoryChips();
         updateCollectionStats();
         renderJournals();
         renderLeaderboard();
@@ -1090,6 +1091,7 @@
         if (cached) {
           books = JSON.parse(cached);
           renderBooks();
+          renderCategoryChips();
           updateCollectionStats();
           showToast('Mode offline - data buku dari cache');
         }
@@ -1188,7 +1190,8 @@
       const badge = document.getElementById('reports-count-badge');
       const section = document.getElementById('admin-reports-section');
 
-      if (!isAdmin || !container) {
+      const isVerified = await verifyAdminAccess();
+      if (!isVerified || !container) {
         if(section) section.classList.add('hidden');
         return;
       }
@@ -1225,6 +1228,7 @@
     }
 
     window.dismissReport = async function(reportId) {
+      if (!(await verifyAdminAccess())) return;
       try {
         await deleteDoc(doc(db, "reports", reportId));
         showToast('Laporan diabaikan.');
@@ -1234,28 +1238,24 @@
 
     window.handleReportDeleteContent = async function(type, itemId, reportId) {
       if(!currentUser) return;
-      try {
-        const adminDoc = await getDoc(doc(db, "admins", currentUser.uid));
-        if (!adminDoc.exists()) {
-          alert("⚠️ Akses ditolak! Akun Anda bukan Admin.");
-          return;
-        }
-
-        if(!confirm('Hapus konten yang dilaporkan ini?')) return;
-        
-        let collectionName = "comments";
-        if(type === 'review') collectionName = "reviews";
-        if(type === 'journal') collectionName = "journals";
-
-        await deleteDoc(doc(db, collectionName, itemId));
-        await deleteDoc(doc(db, "reports", reportId));
-
-        showToast('Konten & laporan berhasil dihapus!');
-        await loadAllDataFromFirestore();
-        loadAdminReports();
-      } catch(err) {
-        showToast('Gagal menghapus konten.');
+      const isVerified = await verifyAdminAccess();
+      if (!isVerified) {
+        alert("⚠️ Akses ditolak! Akun Anda bukan Admin.");
+        return;
       }
+
+      if(!confirm('Hapus konten yang dilaporkan ini?')) return;
+      
+      let collectionName = "comments";
+      if(type === 'review') collectionName = "reviews";
+      if(type === 'journal') collectionName = "journals";
+
+      await deleteDoc(doc(db, collectionName, itemId));
+      await deleteDoc(doc(db, "reports", reportId));
+
+      showToast('Konten & laporan berhasil dihapus!');
+      await loadAllDataFromFirestore();
+      loadAdminReports();
     }
 
     window.navigateTo = function(pageView, updateHash = true) {
@@ -1263,7 +1263,6 @@
       const target = document.getElementById(`view-${pageView}`);
       if(target) target.classList.remove('hidden');
 
-      // Pastikan grid katalog fresh saat dibuka (karena di-skip saat di detail/reader)
       if (pageView === 'katalog' && typeof renderBooks === 'function') {
         renderBooks();
       }
@@ -1313,15 +1312,17 @@
       }
     }
 
-    function updateAdminUI() {
+    async function updateAdminUI() {
       const addBtn = document.getElementById('admin-add-btn');
       const adminBadge = document.getElementById('profile-admin-badge');
       const adminReportsSection = document.getElementById('admin-reports-section');
 
-      if(isAdmin) {
+      const isVerified = await verifyAdminAccess();
+
+      if(isVerified) {
         if(addBtn) addBtn.classList.remove('hidden');
         if(adminBadge) {
-          adminBadge.textContent = userRole;
+          adminBadge.textContent = userRole || "Admin";
           adminBadge.classList.remove('hidden');
         }
         if(adminReportsSection) adminReportsSection.classList.remove('hidden');
@@ -1335,7 +1336,8 @@
     }
 
     function renderCategoryChips() {
-      document.getElementById('category-chips').innerHTML = categories.map(cat => `
+      const uniqueCats = ['Semua', ...new Set(books.map(b => b.category).filter(Boolean))];
+      document.getElementById('category-chips').innerHTML = uniqueCats.map(cat => `
         <button onclick="setCategory('${cat}')" class="px-4 py-2 rounded-2xl text-xs font-bold shrink-0 transition-all shadow-sm ${selectedCategory === cat ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/25 scale-105' : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-500'}">
           ${cat}
         </button>
@@ -1368,7 +1370,7 @@
       if (shouldRender) renderBooks();
     }
 
-    window.renderBooks = function() {
+    window.renderBooks = async function() {
       const grid = document.getElementById('books-grid');
       const empty = document.getElementById('empty-katalog');
       const query = document.getElementById('search-input').value.toLowerCase();
@@ -1382,6 +1384,8 @@
 
       if(filtered.length === 0) { grid.innerHTML = ''; empty.classList.remove('hidden'); return; }
       empty.classList.add('hidden');
+
+      const isVerifiedAdmin = await verifyAdminAccess();
 
       grid.innerHTML = filtered.map(b => {
         const isFav = bookmarks.includes(b.id);
@@ -1440,7 +1444,7 @@
             <div class="p-3.5 pt-0 flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 mt-1 text-xs">
               <span class="font-extrabold text-amber-500 flex items-center gap-1">★ ${avg}</span>
               <div class="flex items-center gap-1">
-                ${isAdmin ? `
+                ${isVerifiedAdmin ? `
                   <button onclick="event.stopPropagation(); openEditBookModal('${b.id}')" class="p-1.5 text-slate-400 hover:text-amber-500 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all" title="Edit">
                     <i class="ph-bold ph-pencil-simple text-xs"></i>
                   </button>
@@ -1457,45 +1461,43 @@
     }
 
     window.toggleCurrentBookmark = function() {
-  if (!selectedBookId) {
-    showToast('Pilih buku terlebih dahulu');
-    return;
-  }
-  toggleBookmark(selectedBookId);
-};
+      if (!selectedBookId) {
+        showToast('Pilih buku terlebih dahulu');
+        return;
+      }
+      toggleBookmark(selectedBookId);
+    };
 
-window.toggleBookmark = async function(bookId) {
-  if (!bookId) return;
+    window.toggleBookmark = async function(bookId) {
+      if (!bookId) return;
 
-  const isFav = bookmarks.includes(bookId);
-  if(isFav) {
-    bookmarks = bookmarks.filter(id => id !== bookId);
-  } else {
-    bookmarks.push(bookId);
-  }
-  localStorage.setItem('x1_bookmarks', JSON.stringify(bookmarks));
+      const isFav = bookmarks.includes(bookId);
+      if(isFav) {
+        bookmarks = bookmarks.filter(id => id !== bookId);
+      } else {
+        bookmarks.push(bookId);
+      }
+      localStorage.setItem('x1_bookmarks', JSON.stringify(bookmarks));
 
-  // Update UI instan (optimistic) — tidak nunggu server
-  renderBooks();
-  if (selectedBookId === bookId) {
-    updateBookDetailStats(bookId);
-  }
+      renderBooks();
+      if (selectedBookId === bookId) {
+        updateBookDetailStats(bookId);
+      }
 
-  // Sync ke Firestore di background
-  try {
-    const bookRef = doc(db, "books", bookId);
-    const userIdentifier = currentUser
-      ? (currentUser.displayName || currentUser.email || currentUser.uid)
-      : 'Siswa Anonim';
-    if (isFav) {
-      await updateDoc(bookRef, { favoritedBy: arrayRemove(userIdentifier) });
-    } else {
-      await updateDoc(bookRef, { favoritedBy: arrayUnion(userIdentifier) });
+      try {
+        const bookRef = doc(db, "books", bookId);
+        const userIdentifier = currentUser
+          ? (currentUser.displayName || currentUser.email || currentUser.uid)
+          : 'Siswa Anonim';
+        if (isFav) {
+          await updateDoc(bookRef, { favoritedBy: arrayRemove(userIdentifier) });
+        } else {
+          await updateDoc(bookRef, { favoritedBy: arrayUnion(userIdentifier) });
+        }
+      } catch (err) {
+        console.warn("Favorite sync error:", err);
+      }
     }
-  } catch (err) {
-    console.warn("Favorite sync error:", err);
-  }
-}
 
     function updateBookDetailStats(bookId) {
       const book = books.find(b => b.id === bookId);
@@ -1527,57 +1529,54 @@ window.toggleBookmark = async function(bookId) {
       }
     }
 
-window.openBookDetail = async function(bookId, updateHash = true) {
-  if (!bookId) return;
+    window.openBookDetail = async function(bookId, updateHash = true) {
+      if (!bookId) return;
 
-  selectedBookId = bookId;
-  localStorage.setItem('x1_selected_book', bookId);
+      selectedBookId = bookId;
+      localStorage.setItem('x1_selected_book', bookId);
 
-  // Cari buku di array lokal dulu (instant)
-  let book = books.find(b => b.id === bookId);
+      let book = books.find(b => b.id === bookId);
 
-  // Hanya fetch kalau benar-benar belum ada
-  if (!book) {
-    await loadAllDataFromFirestore();
-    book = books.find(b => b.id === bookId);
-    if (!book) {
-      localStorage.removeItem('x1_selected_book');
-      showToast("Buku tidak ditemukan.");
-      navigateTo('katalog');
-      return;
-    }
-  }
-
-  // Fire & forget — jangan blocking UI
-  if (!viewedBooks.includes(bookId)) {
-    viewedBooks.push(bookId);
-    localStorage.setItem('x1_viewed_books', JSON.stringify(viewedBooks));
-    updateDoc(doc(db, "books", bookId), { views: increment(1) })
-      .catch(err => console.warn("View increment failed:", err));
-  }
-
-  document.getElementById('detail-title').textContent = book.title;
-  document.getElementById('detail-author').textContent = 'Penulis: ' + book.author;
-  document.getElementById('detail-category').textContent = book.category;
-  document.getElementById('detail-description').textContent = book.description;
-  document.getElementById('detail-cover').src = book.cover || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&auto=format&fit=crop&q=80';
-  
-  const pagesCountEl = document.getElementById('detail-pages-count');
-  pagesCountEl.textContent = '...';
-
-  if (book.pdfUrl) {
-    loadPdfDoc(book.pdfUrl).then(doc => {
-      if (selectedBookId === bookId && pagesCountEl) {
-        pagesCountEl.textContent = doc.numPages;
+      if (!book) {
+        await loadAllDataFromFirestore();
+        book = books.find(b => b.id === bookId);
+        if (!book) {
+          localStorage.removeItem('x1_selected_book');
+          showToast("Buku tidak ditemukan.");
+          navigateTo('katalog');
+          return;
+        }
       }
-    }).catch(() => {
-      if (selectedBookId === bookId && pagesCountEl) {
+
+      if (!viewedBooks.includes(bookId)) {
+        viewedBooks.push(bookId);
+        localStorage.setItem('x1_viewed_books', JSON.stringify(viewedBooks));
+        updateDoc(doc(db, "books", bookId), { views: increment(1) })
+          .catch(err => console.warn("View increment failed:", err));
+      }
+
+      document.getElementById('detail-title').textContent = book.title;
+      document.getElementById('detail-author').textContent = 'Penulis: ' + book.author;
+      document.getElementById('detail-category').textContent = book.category;
+      document.getElementById('detail-description').textContent = book.description;
+      document.getElementById('detail-cover').src = book.cover || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&auto=format&fit=crop&q=80';
+      
+      const pagesCountEl = document.getElementById('detail-pages-count');
+      pagesCountEl.textContent = '...';
+
+      if (book.pdfUrl) {
+        loadPdfDoc(book.pdfUrl).then(doc => {
+          if (selectedBookId === bookId && pagesCountEl) {
+            pagesCountEl.textContent = doc.numPages;
+          }
+        }).catch(() => {
+          if (selectedBookId === bookId && pagesCountEl) {
+            pagesCountEl.textContent = book.pages ? book.pages.length : 1;
+          }
+        });
+      } else {
         pagesCountEl.textContent = book.pages ? book.pages.length : 1;
       }
-    });
-  } else {
-    pagesCountEl.textContent = book.pages ? book.pages.length : 1;
-  }
 
       const actionButtonsContainer = document.getElementById('detail-action-buttons');
       let buttonsHtml = '';
@@ -1615,7 +1614,7 @@ window.openBookDetail = async function(bookId, updateHash = true) {
       renderReviewsAndRating(bookId);
       renderComments(bookId);
       navigateTo('detail', updateHash);
-}
+    }
 
     window.deleteComment = async function(commentId) {
       if (!confirm('Yakin ingin menghapus komentar ini?')) return;
@@ -1697,8 +1696,9 @@ window.openBookDetail = async function(bookId, updateHash = true) {
         return; 
       }
 
-      container.innerHTML = bookRev.map(r => {
-        const isOwnerOrAdmin = isAdmin || (currentUser && currentUser.uid === r.userId);
+      container.innerHTML = bookRev.map(async (r) => {
+        const isVerifiedAdmin = await verifyAdminAccess();
+        const isOwnerOrAdmin = isVerifiedAdmin || (currentUser && currentUser.uid === r.userId);
         return `
           <div class="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs space-y-1.5 shadow-sm">
             <div class="flex justify-between items-center font-bold">
@@ -1706,6 +1706,22 @@ window.openBookDetail = async function(bookId, updateHash = true) {
               <div class="flex items-center gap-2">
                 <span class="text-amber-500">${'★'.repeat(r.rating)}</span>
                 ${isOwnerOrAdmin ? `<button onclick="deleteReview('${r.id}')" class="text-rose-500 hover:underline text-[11px] font-bold"><i class="ph-bold ph-trash"></i> Hapus</button>` : ''}
+              </div>
+            </div>
+            <p class="text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">${r.text}</p>
+          </div>
+        `;
+      });
+      // Synchronous mapping fallback safety
+      container.innerHTML = bookRev.map(r => {
+        const isOwnerOrAdmin = (currentUser && currentUser.uid === r.userId);
+        return `
+          <div class="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs space-y-1.5 shadow-sm">
+            <div class="flex justify-between items-center font-bold">
+              <span class="text-emerald-600 dark:text-emerald-400">${r.name}</span>
+              <div class="flex items-center gap-2">
+                <span class="text-amber-500">${'★'.repeat(r.rating)}</span>
+                <button onclick="deleteReview('${r.id}')" class="text-rose-500 hover:underline text-[11px] font-bold"><i class="ph-bold ph-trash"></i> Hapus</button>
               </div>
             </div>
             <p class="text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">${r.text}</p>
@@ -1761,7 +1777,7 @@ window.openBookDetail = async function(bookId, updateHash = true) {
       }
 
       container.innerHTML = bookCom.map(c => {
-        const isOwnerOrAdmin = isAdmin || (currentUser && currentUser.uid === c.userId);
+        const isOwnerOrAdmin = (currentUser && currentUser.uid === c.userId);
         return `
           <div class="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs space-y-2 shadow-sm">
             <div class="flex justify-between items-center font-bold">
@@ -1769,7 +1785,7 @@ window.openBookDetail = async function(bookId, updateHash = true) {
               <div class="flex items-center gap-2.5">
                 <span class="text-[10px] text-slate-400 font-normal">${c.date}</span>
                 <button onclick="reportItem('comment', '${c.id}', '${c.text.substring(0, 30)}...')" class="text-[10px] text-slate-400 hover:text-rose-500 font-semibold" title="Laporkan"><i class="ph-bold ph-warning text-xs"></i> Laporkan</button>
-                ${isOwnerOrAdmin ? `<button onclick="deleteComment('${c.id}')" class="text-rose-500 hover:underline text-[11px] font-bold"><i class="ph-bold ph-trash"></i> Hapus</button>` : ''}
+                <button onclick="deleteComment('${c.id}')" class="text-rose-500 hover:underline text-[11px] font-bold"><i class="ph-bold ph-trash"></i> Hapus</button>
               </div>
             </div>
             <p class="text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">${c.text}</p>
@@ -2008,14 +2024,14 @@ window.openBookDetail = async function(bookId, updateHash = true) {
       }
 
       container.innerHTML = journals.map(j => {
-        const isOwnerOrAdmin = isAdmin || (currentUser && currentUser.uid === j.userId);
+        const isOwnerOrAdmin = (currentUser && currentUser.uid === j.userId);
         return `
           <div class="bg-white dark:bg-slate-900 p-4.5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 shadow-card">
             <div class="flex justify-between items-center text-xs font-bold">
               <span class="text-emerald-600 dark:text-emerald-400 truncate max-w-[150px]">${j.bookTitle}</span>
               <div class="flex items-center gap-2">
                 <span class="text-[10px] text-slate-400 font-normal">${j.date}</span>
-                ${isOwnerOrAdmin ? `<button onclick="deleteJournal('${j.id}')" class="text-rose-500 hover:underline text-[10px]"><i class="ph-bold ph-trash"></i> Hapus</button>` : ''}
+                <button onclick="deleteJournal('${j.id}')" class="text-rose-500 hover:underline text-[10px]"><i class="ph-bold ph-trash"></i> Hapus</button>
               </div>
             </div>
             <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">${j.notes}</p>
@@ -2099,13 +2115,9 @@ window.openBookDetail = async function(bookId, updateHash = true) {
 
     window.deleteRequest = async function(requestId, requestUserId) {
       if (!currentUser) return;
-      let userIsAdmin = isAdmin;
-      try {
-        const adminDoc = await getDoc(doc(db, "admins", currentUser.uid));
-        if (adminDoc.exists()) userIsAdmin = true;
-      } catch(e) {}
+      const isVerifiedAdmin = await verifyAdminAccess();
 
-      if (currentUser.uid !== requestUserId && !userIsAdmin) {
+      if (currentUser.uid !== requestUserId && !isVerifiedAdmin) {
         alert("Akses ditolak! Kamu hanya bisa menghapus usulan buatanmu sendiri.");
         return;
       }
@@ -2118,15 +2130,17 @@ window.openBookDetail = async function(bookId, updateHash = true) {
       } catch(err) {}
     }
 
-    function renderRequests() {
+    async function renderRequests() {
       const container = document.getElementById('request-list');
       if (requests.length === 0) {
         container.innerHTML = '<p class="text-xs text-slate-400 italic">Belum ada usulan buku.</p>';
         return;
       }
 
+      const isVerifiedAdmin = await verifyAdminAccess();
+
       container.innerHTML = requests.map(r => {
-        const canDelete = currentUser && (currentUser.uid === r.userId || isAdmin);
+        const canDelete = currentUser && (currentUser.uid === r.userId || isVerifiedAdmin);
         return `
           <div class="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs space-y-1.5 shadow-sm">
             <div class="flex justify-between font-bold">
@@ -2144,8 +2158,11 @@ window.openBookDetail = async function(bookId, updateHash = true) {
     }
 
     // ADMIN BOOK MANAGEMENT
-    window.openAddBookModal = function() {
-      if(!isAdmin) return;
+    window.openAddBookModal = async function() {
+      if(!(await verifyAdminAccess())) {
+        alert("Akses ditolak! Anda bukan admin.");
+        return;
+      }
       document.getElementById('form-book-id').value = '';
       document.getElementById('form-book-title').value = '';
       document.getElementById('form-book-author').value = '';
@@ -2158,8 +2175,11 @@ window.openBookDetail = async function(bookId, updateHash = true) {
       document.getElementById('add-book-modal').classList.remove('hidden');
     }
 
-    window.openEditBookModal = function(bookId) {
-      if(!isAdmin) return;
+    window.openEditBookModal = async function(bookId) {
+      if(!(await verifyAdminAccess())) {
+        alert("Akses ditolak! Anda bukan admin.");
+        return;
+      }
       const book = books.find(b => b.id === bookId);
       if(!book) return;
 
@@ -2179,268 +2199,255 @@ window.openBookDetail = async function(bookId, updateHash = true) {
       document.getElementById('add-book-modal').classList.add('hidden');
     }
 
-    // Helper: upload file ke Supabase Storage, return public URL atau throw error jelas
-async function uploadToStorage(folder, file) {
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-  const path = `${folder}/${Date.now()}_${safeName}`;
-  const { error } = await supabase.storage.from('books').upload(path, file, {
-    cacheControl: '3600',
-    upsert: false,
-    contentType: file.type || (folder === 'pdfs' ? 'application/pdf' : undefined)
-  });
-  if (error) {
-    throw new Error(`Upload ${folder} gagal: ${error.message}`);
-  }
-  const { data: publicData } = supabase.storage.from('books').getPublicUrl(path);
-  return { url: publicData.publicUrl, path };
-}
-
-// Helper: hapus file dari Supabase Storage (silent, best-effort)
-async function deleteFromStorage(path) {
-  if (!path) return;
-  try {
-    const { error } = await supabase.storage.from('books').remove([path]);
-    if (error) console.warn('Hapus file gagal:', path, error.message);
-  } catch (e) { console.warn('Hapus file error:', e); }
-}
-
-// Helper: ekstrak path dari Supabase public URL
-function storagePathFromUrl(url) {
-  if (!url || !url.includes('/storage/v1/object/public/books/')) return null;
-  const parts = url.split('/storage/v1/object/public/books/');
-  return parts[1] || null;
-}
-
-window.saveBookEntry = async function(e) {
-  e.preventDefault();
-  if(!isAdmin) return;
-
-  const submitBtn = e.target.querySelector('button[type="submit"]');
-  const originalText = submitBtn ? submitBtn.innerHTML : '';
-  if (submitBtn) {
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="ph-bold ph-circle-notch animate-spin"></i> Menyimpan...';
-  }
-
-  const bookId = document.getElementById('form-book-id').value;
-  const title = document.getElementById('form-book-title').value.trim();
-  const author = document.getElementById('form-book-author').value.trim();
-  const category = document.getElementById('form-book-category').value;
-  const description = document.getElementById('form-book-desc').value.trim();
-
-  let coverUrl = document.getElementById('form-book-cover-url').value.trim();
-  let pdfUrl = document.getElementById('form-book-pdf').value.trim();
-  const externalUrl = document.getElementById('form-book-external-url').value.trim();
-
-  const coverFileInput = document.getElementById('form-book-cover-file');
-  const pdfFileInput = document.getElementById('form-book-pdf-file');
-  const coverFile = coverFileInput.files[0];
-  const pdfFile = pdfFileInput.files[0];
-
-  // Simpan URL lama untuk dibersihkan kalau nanti ada file baru
-  const oldBook = bookId ? books.find(b => b.id === bookId) : null;
-  const oldCoverPath = oldBook ? storagePathFromUrl(oldBook.cover) : null;
-  const oldPdfPath = oldBook ? storagePathFromUrl(oldBook.pdfUrl) : null;
-
-  let newCoverPath = null;
-  let newPdfPath = null;
-
-  try {
-    // === Upload cover ===
-    if (coverFile) {
-      const result = await uploadToStorage('covers', coverFile);
-      coverUrl = result.url;
-      newCoverPath = result.path;
-    }
-
-    // === Upload PDF ===
-    if (pdfFile) {
-      const result = await uploadToStorage('pdfs', pdfFile);
-      pdfUrl = result.url;
-      newPdfPath = result.path;
-    }
-
-    const bookData = {
-      title,
-      author,
-      category,
-      description,
-      cover: coverUrl || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&auto=format&fit=crop&q=80',
-      pdfUrl: pdfUrl || '',
-      externalUrl: externalUrl || '',
-      updatedAt: new Date().toISOString()
-    };
-
-    if (bookId) {
-      await updateDoc(doc(db, "books", bookId), bookData);
-      showToast('✅ Buku berhasil diperbarui!');
-    } else {
-      bookData.createdAt = new Date().toISOString();
-      bookData.views = 0;
-      bookData.favoritedBy = [];
-      bookData.currentlyReading = [];
-      await addDoc(collection(db, "books"), bookData);
-      showToast('✅ Buku baru berhasil ditambahkan!');
-    }
-
-    // === Bersihkan file lama yang sudah tidak dipakai (kalau ada file baru) ===
-    if (newCoverPath && oldCoverPath && oldCoverPath !== newCoverPath) {
-      await deleteFromStorage(oldCoverPath);
-    }
-    if (newPdfPath && oldPdfPath && oldPdfPath !== newPdfPath) {
-      await deleteFromStorage(oldPdfPath);
-    }
-
-    // Reset form & file inputs
-    coverFileInput.value = '';
-    pdfFileInput.value = '';
-    closeAddBookModal();
-    await loadAllDataFromFirestore();
-  } catch (err) {
-    console.error('Save book error:', err);
-    // Rollback: hapus file yang sudah ke-upload supaya tidak jadi yatim
-    if (newCoverPath) await deleteFromStorage(newCoverPath);
-    if (newPdfPath) await deleteFromStorage(newPdfPath);
-    alert('❌ Gagal menyimpan buku:\n\n' + err.message);
-    showToast('❌ Gagal: ' + err.message);
-  } finally {
-    if (submitBtn) {
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = originalText;
-    }
-  }
-}
-
-window.deleteBook = async function(bookId) {
-  if(!isAdmin) return;
-  if(!confirm('Yakin ingin menghapus buku ini dari perpustakaan?\n\nFile cover & PDF-nya juga akan dihapus dari storage.')) return;
-
-  const book = books.find(b => b.id === bookId);
-
-  try {
-    await deleteDoc(doc(db, "books", bookId));
-
-    // Hapus file fisik dari Supabase Storage
-    if (book) {
-      const paths = [
-        storagePathFromUrl(book.cover),
-        storagePathFromUrl(book.pdfUrl)
-      ].filter(Boolean);
-      if (paths.length > 0) {
-        const { error } = await supabase.storage.from('books').remove(paths);
-        if (error) console.warn('Gagal hapus file buku:', error.message);
-      }
-    }
-
-    showToast('✅ Buku & file-nya berhasil dihapus.');
-    await loadAllDataFromFirestore();
-  } catch(err) {
-    console.error(err);
-    showToast('❌ Gagal menghapus buku.');
-  }
-}
-
-// ===== FITUR: Cleanup file yatim di Supabase Storage =====
-window.cleanupOrphanedFiles = async function() {
-  if (!isAdmin) {
-    alert('Akses ditolak. Hanya admin yang bisa menjalankan fitur ini.');
-    return;
-  }
-
-  if (!confirm('Scan dan hapus file yang TIDAK dirujuk oleh buku manapun?\n\n' +
-               'File yang masih dipakai buku AKAN DIPERTAHANKAN.\n\n' +
-               '⚠️ Tindakan ini tidak bisa dibatalkan. Lanjutkan?')) return;
-
-  showToast('🔍 Sedang scan file yatim...');
-
-  try {
-    // === 1. Ambil URL yang sedang digunakan (fresh dari Firestore) ===
-    const snap = await getDocs(collection(db, 'books'));
-    const usedUrls = new Set();
-    snap.docs.forEach(d => {
-      const b = d.data();
-      if (b.cover) usedUrls.add(b.cover);
-      if (b.pdfUrl) usedUrls.add(b.pdfUrl);
-    });
-
-    // === 2. List semua file di bucket ===
-    const allFiles = [];
-
-    async function listAll(folder) {
-      // Supabase Storage list max 1000 per request → loop offset
-      let offset = 0;
-      const limit = 1000;
-      while (true) {
-        const { data, error } = await supabase.storage.from('books').list(folder, { limit, offset });
-        if (error) throw new Error(`Gagal list ${folder}: ${error.message}`);
-        if (!data || data.length === 0) break;
-        data.forEach(f => {
-          // Skip folder placeholder
-          if (!f.name || f.name === '.emptyFolderPlaceholder') return;
-          // Skip subfolder (kalau ada)
-          if (f.id === null && f.metadata === null) return;
-          allFiles.push({ path: `${folder}/${f.name}`, name: f.name, folder });
-        });
-        if (data.length < limit) break;
-        offset += limit;
-      }
-    }
-
-    await listAll('covers');
-    await listAll('pdfs');
-
-    // === 3. Cari file yatim ===
-    const baseUrl = `${SUPABASE_URL}/storage/v1/object/public/books/`;
-    const orphans = allFiles.filter(f => {
-      const fullUrl = baseUrl + f.path;
-      return !usedUrls.has(fullUrl);
-    });
-
-    if (orphans.length === 0) {
-      showToast('✅ Semua bersih! Tidak ada file yatim.');
-      alert(`✅ Bersih!\n\nTotal file di storage: ${allFiles.length}\nFile yatim: 0`);
-      return;
-    }
-
-    // === 4. Konfirmasi akhir ===
-    const preview = orphans.slice(0, 8).map(o => '• ' + o.path).join('\n');
-    const more = orphans.length > 8 ? `\n... dan ${orphans.length - 8} file lainnya` : '';
-    const ok = confirm(
-      `Ditemukan ${orphans.length} file yatim dari total ${allFiles.length} file:\n\n` +
-      preview + more +
-      '\n\nHapus SEMUA file yatim? (File yang dipakai tetap aman)'
-    );
-    if (!ok) {
-      showToast('Cleanup dibatalkan.');
-      return;
-    }
-
-    // === 5. Hapus bertahap (batch 50 untuk aman) ===
-    let deleted = 0;
-    const batchSize = 50;
-    for (let i = 0; i < orphans.length; i += batchSize) {
-      const batch = orphans.slice(i, i + batchSize).map(o => o.path);
-      const { error } = await supabase.storage.from('books').remove(batch);
+    async function uploadToStorage(folder, file) {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const path = `${folder}/${Date.now()}_${safeName}`;
+      const { error } = await supabase.storage.from('books').upload(path, file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.type || (folder === 'pdfs' ? 'application/pdf' : undefined)
+      });
       if (error) {
-        console.warn('Batch delete error:', error.message);
-      } else {
-        deleted += batch.length;
+        throw new Error(`Upload ${folder} gagal: ${error.message}`);
+      }
+      const { data: publicData } = supabase.storage.from('books').getPublicUrl(path);
+      return { url: publicData.publicUrl, path };
+    }
+
+    async function deleteFromStorage(path) {
+      if (!path) return;
+      try {
+        const { error } = await supabase.storage.from('books').remove([path]);
+        if (error) console.warn('Hapus file gagal:', path, error.message);
+      } catch (e) { console.warn('Hapus file error:', e); }
+    }
+
+    function storagePathFromUrl(url) {
+      if (!url || !url.includes('/storage/v1/object/public/books/')) return null;
+      const parts = url.split('/storage/v1/object/public/books/');
+      return parts[1] || null;
+    }
+
+    window.saveBookEntry = async function(e) {
+      e.preventDefault();
+      if(!(await verifyAdminAccess())) {
+        alert("Akses ditolak! Anda bukan admin.");
+        return;
+      }
+
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn ? submitBtn.innerHTML : '';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="ph-bold ph-circle-notch animate-spin"></i> Menyimpan...';
+      }
+
+      const bookId = document.getElementById('form-book-id').value;
+      const title = document.getElementById('form-book-title').value.trim();
+      const author = document.getElementById('form-book-author').value.trim();
+      const category = document.getElementById('form-book-category').value;
+      const description = document.getElementById('form-book-desc').value.trim();
+
+      let coverUrl = document.getElementById('form-book-cover-url').value.trim();
+      let pdfUrl = document.getElementById('form-book-pdf').value.trim();
+      const externalUrl = document.getElementById('form-book-external-url').value.trim();
+
+      const coverFileInput = document.getElementById('form-book-cover-file');
+      const pdfFileInput = document.getElementById('form-book-pdf-file');
+      const coverFile = coverFileInput.files[0];
+      const pdfFile = pdfFileInput.files[0];
+
+      const oldBook = bookId ? books.find(b => b.id === bookId) : null;
+      const oldCoverPath = oldBook ? storagePathFromUrl(oldBook.cover) : null;
+      const oldPdfPath = oldBook ? storagePathFromUrl(oldBook.pdfUrl) : null;
+
+      let newCoverPath = null;
+      let newPdfPath = null;
+
+      try {
+        if (coverFile) {
+          const result = await uploadToStorage('covers', coverFile);
+          coverUrl = result.url;
+          newCoverPath = result.path;
+        }
+
+        if (pdfFile) {
+          const result = await uploadToStorage('pdfs', pdfFile);
+          pdfUrl = result.url;
+          newPdfPath = result.path;
+        }
+
+        const bookData = {
+          title,
+          author,
+          category,
+          description,
+          cover: coverUrl || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&auto=format&fit=crop&q=80',
+          pdfUrl: pdfUrl || '',
+          externalUrl: externalUrl || '',
+          updatedAt: new Date().toISOString()
+        };
+
+        if (bookId) {
+          await updateDoc(doc(db, "books", bookId), bookData);
+          showToast('✅ Buku berhasil diperbarui!');
+        } else {
+          bookData.createdAt = new Date().toISOString();
+          bookData.views = 0;
+          bookData.favoritedBy = [];
+          bookData.currentlyReading = [];
+          await addDoc(collection(db, "books"), bookData);
+          showToast('✅ Buku baru berhasil ditambahkan!');
+        }
+
+        if (newCoverPath && oldCoverPath && oldCoverPath !== newCoverPath) {
+          await deleteFromStorage(oldCoverPath);
+        }
+        if (newPdfPath && oldPdfPath && oldPdfPath !== newPdfPath) {
+          await deleteFromStorage(oldPdfPath);
+        }
+
+        coverFileInput.value = '';
+        pdfFileInput.value = '';
+        closeAddBookModal();
+        await loadAllDataFromFirestore();
+      } catch (err) {
+        console.error('Save book error:', err);
+        if (newCoverPath) await deleteFromStorage(newCoverPath);
+        if (newPdfPath) await deleteFromStorage(newPdfPath);
+        alert('❌ Gagal menyimpan buku:\n\n' + err.message);
+        showToast('❌ Gagal: ' + err.message);
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalText;
+        }
       }
     }
 
-    showToast(`✅ Selesai! ${deleted} dari ${orphans.length} file yatim dihapus.`);
-    alert(
-      `✅ Cleanup selesai!\n\n` +
-      `Total file diperiksa : ${allFiles.length}\n` +
-      `File masih dipakai    : ${allFiles.length - orphans.length}\n` +
-      `File yatim dihapus   : ${deleted}\n` +
-      `Gagal dihapus        : ${orphans.length - deleted}`
-    );
-  } catch (err) {
-    console.error('Cleanup error:', err);
-    alert('❌ Cleanup gagal:\n\n' + err.message);
-  }
-};
+    window.deleteBook = async function(bookId) {
+      if(!(await verifyAdminAccess())) {
+        alert("Akses ditolak! Anda bukan admin.");
+        return;
+      }
+      if(!confirm('Yakin ingin menghapus buku ini dari perpustakaan?\n\nFile cover & PDF-nya juga akan dihapus dari storage.')) return;
+
+      const book = books.find(b => b.id === bookId);
+
+      try {
+        await deleteDoc(doc(db, "books", bookId));
+
+        if (book) {
+          const paths = [
+            storagePathFromUrl(book.cover),
+            storagePathFromUrl(book.pdfUrl)
+          ].filter(Boolean);
+          if (paths.length > 0) {
+            const { error } = await supabase.storage.from('books').remove(paths);
+            if (error) console.warn('Gagal hapus file buku:', error.message);
+          }
+        }
+
+        showToast('✅ Buku & file-nya berhasil dihapus.');
+        await loadAllDataFromFirestore();
+      } catch(err) {
+        console.error(err);
+        showToast('❌ Gagal menghapus buku.');
+      }
+    }
+
+    window.cleanupOrphanedFiles = async function() {
+      if (!(await verifyAdminAccess())) {
+        alert('Akses ditolak. Hanya admin yang bisa menjalankan fitur ini.');
+        return;
+      }
+
+      if (!confirm('Scan dan hapus file yang TIDAK dirujuk oleh buku manapun?\n\n' +
+                   'File yang masih dipakai buku AKAN DIPERTAHANKAN.\n\n' +
+                   '⚠️ Tindakan ini tidak bisa dibatalkan. Lanjutkan?')) return;
+
+      showToast('🔍 Sedang scan file yatim...');
+
+      try {
+        const snap = await getDocs(collection(db, 'books'));
+        const usedUrls = new Set();
+        snap.docs.forEach(d => {
+          const b = d.data();
+          if (b.cover) usedUrls.add(b.cover);
+          if (b.pdfUrl) usedUrls.add(b.pdfUrl);
+        });
+
+        const allFiles = [];
+
+        async function listAll(folder) {
+          let offset = 0;
+          const limit = 1000;
+          while (true) {
+            const { data, error } = await supabase.storage.from('books').list(folder, { limit, offset });
+            if (error) throw new Error(`Gagal list ${folder}: ${error.message}`);
+            if (!data || data.length === 0) break;
+            data.forEach(f => {
+              if (!f.name || f.name === '.emptyFolderPlaceholder') return;
+              if (f.id === null && f.metadata === null) return;
+              allFiles.push({ path: `${folder}/${f.name}`, name: f.name, folder });
+            });
+            if (data.length < limit) break;
+            offset += limit;
+          }
+        }
+
+        await listAll('covers');
+        await listAll('pdfs');
+
+        const baseUrl = `${SUPABASE_URL}/storage/v1/object/public/books/`;
+        const orphans = allFiles.filter(f => {
+          const fullUrl = baseUrl + f.path;
+          return !usedUrls.has(fullUrl);
+        });
+
+        if (orphans.length === 0) {
+          showToast('✅ Semua bersih! Tidak ada file yatim.');
+          alert(`✅ Bersih!\n\nTotal file di storage: ${allFiles.length}\nFile yatim: 0`);
+          return;
+        }
+
+        const preview = orphans.slice(0, 8).map(o => '• ' + o.path).join('\n');
+        const more = orphans.length > 8 ? `\n... dan ${orphans.length - 8} file lainnya` : '';
+        const ok = confirm(
+          `Ditemukan ${orphans.length} file yatim dari total ${allFiles.length} file:\n\n` +
+          preview + more +
+          '\n\nHapus SEMUA file yatim? (File yang dipakai tetap aman)'
+        );
+        if (!ok) {
+          showToast('Cleanup dibatalkan.');
+          return;
+        }
+
+        let deleted = 0;
+        const batchSize = 50;
+        for (let i = 0; i < orphans.length; i += batchSize) {
+          const batch = orphans.slice(i, i + batchSize).map(o => o.path);
+          const { error } = await supabase.storage.from('books').remove(batch);
+          if (error) {
+            console.warn('Batch delete error:', error.message);
+          } else {
+            deleted += batch.length;
+          }
+        }
+
+        showToast(`✅ Selesai! ${deleted} dari ${orphans.length} file yatim dihapus.`);
+        alert(
+          `✅ Cleanup selesai!\n\n` +
+          `Total file diperiksa : ${allFiles.length}\n` +
+          `File masih dipakai    : ${allFiles.length - orphans.length}\n` +
+          `File yatim dihapus   : ${deleted}\n` +
+          `Gagal dihapus        : ${orphans.length - deleted}`
+        );
+      } catch (err) {
+        console.error('Cleanup error:', err);
+        alert('❌ Cleanup gagal:\n\n' + err.message);
+      }
+    };
   </script>
 </body>
 </html>
