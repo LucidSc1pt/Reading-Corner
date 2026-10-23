@@ -56,10 +56,10 @@
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     
     .page-view {
-      animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
+      from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
     }
   </style>
@@ -128,6 +128,38 @@
         </div>
       </div>
 
+      <!-- WIDGET STATISTIK KOLEKSI BUKU -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center text-xl shrink-0"><i class="ph-bold ph-books"></i></div>
+          <div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Buku</span>
+            <span id="stat-total-books" class="text-lg font-black text-slate-900 dark:text-white">0</span>
+          </div>
+        </div>
+        <div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-cyan-100 dark:bg-cyan-950/60 text-cyan-600 flex items-center justify-center text-xl shrink-0"><i class="ph-bold ph-file-pdf"></i></div>
+          <div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">File PDF</span>
+            <span id="stat-pdf-books" class="text-lg font-black text-slate-900 dark:text-white">0</span>
+          </div>
+        </div>
+        <div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center text-xl shrink-0"><i class="ph-bold ph-bookmark-simple"></i></div>
+          <div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Kategori</span>
+            <span id="stat-total-categories" class="text-lg font-black text-slate-900 dark:text-white">0</span>
+          </div>
+        </div>
+        <div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 flex items-center justify-center text-xl shrink-0"><i class="ph-bold ph-globe"></i></div>
+          <div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Link Web</span>
+            <span id="stat-web-books" class="text-lg font-black text-slate-900 dark:text-white">0</span>
+          </div>
+        </div>
+      </div>
+
       <div class="space-y-4">
         <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
           <div class="relative flex-1">
@@ -171,10 +203,10 @@
         <button onclick="navigateTo('katalog')" class="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition-colors">
           <i class="ph-bold ph-arrow-left text-base"></i> Kembali ke Katalog
         </button>
-        <button id="detail-fav-btn" onclick="toggleBookmark(selectedBookId)" class="p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 hover:text-amber-400 shadow-card transition-all flex items-center gap-2">
+        <button id="detail-fav-btn" onclick="toggleCurrentBookmark()" class="p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 hover:text-amber-400 shadow-card transition-all flex items-center gap-2">
           <i class="ph-bold ph-star text-lg" id="detail-fav-icon"></i>
           <span id="detail-fav-count" class="text-xs font-bold text-slate-700 dark:text-slate-300">0</span>
-        </button>
+        </>
       </div>
 
       <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-8 shadow-card">
@@ -541,6 +573,7 @@
     let pdfPageNum = 1;
     let isRenderingPdf = false;
     let pdfZoomLevel = 1.3;
+    const pdfDocCache = {}; // Cache PDF untuk mempercepat pembukaan dokumen
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, addDoc, doc, getDoc, deleteDoc, updateDoc, increment, setDoc, enableIndexedDbPersistence, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -714,51 +747,71 @@
     }
 
     async function loadPdfDoc(url) {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error("Gagal mengambil file PDF dari server.");
-      const arrayBuffer = await response.arrayBuffer();
-      return await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      if (pdfDocCache[url]) return pdfDocCache[url];
+      try {
+        // Pakai URL langsung → PDF.js otomatis pakai HTTP Range Request
+        // Hanya download metadata + halaman yang dibutuhkan (jauh lebih cepat)
+        const loadingTask = pdfjsLib.getDocument(url);
+        const doc = await loadingTask.promise;
+        pdfDocCache[url] = doc;
+        return doc;
+      } catch (rangeErr) {
+        // Fallback ke full download kalau server tidak support range
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Gagal mengambil file PDF dari server.");
+        const arrayBuffer = await response.arrayBuffer();
+        const doc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        pdfDocCache[url] = doc;
+        return doc;
+      }
     }
 
     async function renderPdfPage(num) {
       if (!pdfDoc) return;
       isRenderingPdf = true;
 
-      const canvas = document.getElementById('pdf-render-canvas');
-      if (!canvas) return;
-      
-      const ctx = canvas.getContext('2d');
-      const page = await pdfDoc.getPage(num);
+      try {
+        const canvas = document.getElementById('pdf-render-canvas');
+        if (!canvas) return;
 
-      const container = document.getElementById('reader-pdf-container');
-      const containerWidth = container ? container.clientWidth - 32 : window.innerWidth - 32;
-      
-      const unscaledViewport = page.getViewport({ scale: 1.0 });
-      const baseScale = containerWidth / unscaledViewport.width;
-      const scale = baseScale * pdfZoomLevel;
-      const viewport = page.getViewport({ scale: scale });
+        const ctx = canvas.getContext('2d');
+        const page = await pdfDoc.getPage(num);
 
-      const dpr = window.devicePixelRatio || 1;
-      
-      canvas.height = viewport.height * dpr;
-      canvas.width = viewport.width * dpr;
+        const container = document.getElementById('reader-pdf-container');
+        const containerWidth = container ? container.clientWidth - 32 : window.innerWidth - 32;
+    
+        const unscaledViewport = page.getViewport({ scale: 1.0 });
+        const baseScale = containerWidth / unscaledViewport.width;
+        const scale = baseScale * pdfZoomLevel;
+        const viewport = page.getViewport({ scale: scale });
 
-      canvas.style.width = `${viewport.width}px`;
-      canvas.style.height = `${viewport.height}px`;
+        const dpr = window.devicePixelRatio || 1;
+    
+        canvas.height = viewport.height * dpr;
+        canvas.width = viewport.width * dpr;
 
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.scale(dpr, dpr);
+        canvas.style.width = `${viewport.width}px`;
+        canvas.style.height = `${viewport.height}px`;
 
-      const renderContext = {
-        canvasContext: ctx,
-        viewport: viewport
-      };
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.scale(dpr, dpr);
 
-      await page.render(renderContext).promise;
-      isRenderingPdf = false;
+        const renderContext = {
+          canvasContext: ctx,
+          viewport: viewport
+        };
 
-      document.getElementById('reader-curr-page').textContent = num;
-      document.getElementById('reader-total-page').textContent = pdfDoc.numPages;
+        await page.render(renderContext).promise;
+
+        const currEl = document.getElementById('reader-curr-page');
+        const totalEl = document.getElementById('reader-total-page');
+        if (currEl) currEl.textContent = num;
+        if (totalEl) totalEl.textContent = pdfDoc.numPages;
+      } catch (err) {
+        console.error("PDF render error:", err);
+      } finally {
+        isRenderingPdf = false;
+      }
     }
 
     window.zoomInPdf = function() {
@@ -888,6 +941,7 @@
     let journals = [];
     let requests = [];
     let bookmarks = JSON.parse(localStorage.getItem('x1_bookmarks')) || [];
+    let viewedBooks = JSON.parse(localStorage.getItem('x1_viewed_books')) || [];
     
     let selectedBookId = null;
     let readerCurrentPage = 0;
@@ -908,7 +962,7 @@
       return BAD_WORDS.some(word => lower.includes(word));
     }
 
-    const categories = ['Semua', 'Fiksi', 'Non-Fiksi', 'Sains & Teknologi', 'Sejarah', 'Modul Kelas'];
+    const categories = ['Semua', 'Fiksi', 'Non-Fiksi'];
         
     window.onload = async function() {
       await authInitialized;
@@ -916,16 +970,27 @@
       renderCategoryChips();
       setViewMode(viewMode, false);
       
-      onSnapshot(collection(db, "books"), (snapshot) => {
+      let snapshotRenderTimeout = null;
+    onSnapshot(
+      collection(db, "books"),
+      (snapshot) => {
         if (!snapshot.empty) {
           books = snapshot.docs.map(doc => ({ id: doc.id, views: 0, favoritedBy: [], currentlyReading: [], ...doc.data() }));
           localStorage.setItem('x1_books_cache', JSON.stringify(books));
-          renderBooks();
-          if (selectedBookId) {
-            updateBookDetailStats(selectedBookId);
-          }
+          clearTimeout(snapshotRenderTimeout);
+          snapshotRenderTimeout = setTimeout(() => {
+            // Skip render grid kalau sedang di detail/reader (hemat CPU)
+            const katalogView = document.getElementById('view-katalog');
+            if (katalogView && !katalogView.classList.contains('hidden')) {
+              renderBooks();
+            }
+            updateCollectionStats();
+            if (selectedBookId) updateBookDetailStats(selectedBookId);
+          }, 150);
         }
-      });
+      },
+      (err) => console.warn("Books snapshot error:", err)
+    );
 
       await loadAllDataFromFirestore();
       
@@ -946,6 +1011,25 @@
         await openBookDetail(savedBookId, false);
       }
     };
+
+    function updateCollectionStats() {
+      const totalEl = document.getElementById('stat-total-books');
+      const pdfEl = document.getElementById('stat-pdf-books');
+      const catEl = document.getElementById('stat-total-categories');
+      const webEl = document.getElementById('stat-web-books');
+
+      if(!totalEl) return;
+
+      const total = books.length;
+      const pdfCount = books.filter(b => b.pdfUrl && b.pdfUrl.trim() !== '').length;
+      const webCount = books.filter(b => b.externalUrl && b.externalUrl.trim() !== '').length;
+      const uniqueCategories = new Set(books.map(b => b.category)).size;
+
+      totalEl.textContent = total;
+      pdfEl.textContent = pdfCount;
+      catEl.textContent = uniqueCategories;
+      webEl.textContent = webCount;
+    }
 
     async function loadAllDataFromFirestore() {
       try {
@@ -997,6 +1081,7 @@
         requests = rSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
         renderBooks();
+        updateCollectionStats();
         renderJournals();
         renderLeaderboard();
         renderRequests();
@@ -1005,6 +1090,7 @@
         if (cached) {
           books = JSON.parse(cached);
           renderBooks();
+          updateCollectionStats();
           showToast('Mode offline - data buku dari cache');
         }
       }
@@ -1177,6 +1263,11 @@
       const target = document.getElementById(`view-${pageView}`);
       if(target) target.classList.remove('hidden');
 
+      // Pastikan grid katalog fresh saat dibuka (karena di-skip saat di detail/reader)
+      if (pageView === 'katalog' && typeof renderBooks === 'function') {
+        renderBooks();
+      }
+
       if (updateHash) {
         window.location.hash = pageView;
       }
@@ -1304,7 +1395,7 @@
         if (viewMode === 'list') {
           return `
             <div class="group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-3 sm:p-4 flex gap-4 items-center shadow-card hover:shadow-card-hover transition-all duration-300">
-              <img src="${b.cover}" alt="${b.title}" class="w-16 h-20 sm:w-20 sm:h-28 object-cover rounded-xl shadow-md flex-shrink-0 cursor-pointer" onclick="openBookDetail('${b.id}')">
+              <img src="${b.cover}" alt="${b.title}" loading="lazy" class="w-16 h-20 sm:w-20 sm:h-28 object-cover rounded-xl shadow-md flex-shrink-0 cursor-pointer" onclick="openBookDetail('${b.id}')">
               <div class="flex-1 min-w-0 space-y-1">
                 <div class="flex items-center gap-2">
                   <span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-bold rounded-md">${b.category}</span>
@@ -1328,10 +1419,10 @@
         }
 
         return `
-          <div class="group relative bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col justify-between shadow-card hover:shadow-card-hover hover:-translate-y-1.5 transition-all duration-300">
+          <div class="group relative bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col justify-between shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-200">
             <div class="cursor-pointer" onclick="openBookDetail('${b.id}')">
               <div class="relative h-48 sm:h-60 bg-slate-100 overflow-hidden">
-                <img src="${b.cover}" alt="${b.title}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                <img src="${b.cover}" alt="${b.title}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                 <span class="absolute top-2.5 left-2.5 px-2.5 py-1 bg-slate-900/80 backdrop-blur-md text-white text-[9px] font-bold rounded-lg shadow-sm">${b.category}</span>
                 <button onclick="event.stopPropagation(); toggleBookmark('${b.id}')" class="absolute top-2.5 right-2.5 p-2 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md text-slate-400 hover:text-amber-400 shadow-sm transition-all">
                   <i class="${isFav ? 'ph-fill ph-star text-amber-400' : 'ph-bold ph-star'} text-xs"></i>
@@ -1365,32 +1456,46 @@
       }).join('');
     }
 
-    window.toggleBookmark = async function(bookId) {
-      const isFav = bookmarks.includes(bookId);
-      if(isFav) {
-        bookmarks = bookmarks.filter(id => id !== bookId);
-      } else {
-        bookmarks.push(bookId);
-      }
-      localStorage.setItem('x1_bookmarks', JSON.stringify(bookmarks));
+    window.toggleCurrentBookmark = function() {
+  if (!selectedBookId) {
+    showToast('Pilih buku terlebih dahulu');
+    return;
+  }
+  toggleBookmark(selectedBookId);
+};
 
-      try {
-        const bookRef = doc(db, "books", bookId);
-        const userIdentifier = currentUser ? (currentUser.displayName || currentUser.email) : 'Siswa Anonim';
-        if (isFav) {
-          await updateDoc(bookRef, { favoritedBy: arrayRemove(userIdentifier) });
-        } else {
-          await updateDoc(bookRef, { favoritedBy: arrayUnion(userIdentifier) });
-        }
-      } catch (err) {
-        console.log("Offline or sync error for favorite status", err);
-      }
+window.toggleBookmark = async function(bookId) {
+  if (!bookId) return;
 
-      renderBooks();
-      if(selectedBookId === bookId) {
-        updateBookDetailStats(bookId);
-      }
+  const isFav = bookmarks.includes(bookId);
+  if(isFav) {
+    bookmarks = bookmarks.filter(id => id !== bookId);
+  } else {
+    bookmarks.push(bookId);
+  }
+  localStorage.setItem('x1_bookmarks', JSON.stringify(bookmarks));
+
+  // Update UI instan (optimistic) — tidak nunggu server
+  renderBooks();
+  if (selectedBookId === bookId) {
+    updateBookDetailStats(bookId);
+  }
+
+  // Sync ke Firestore di background
+  try {
+    const bookRef = doc(db, "books", bookId);
+    const userIdentifier = currentUser
+      ? (currentUser.displayName || currentUser.email || currentUser.uid)
+      : 'Siswa Anonim';
+    if (isFav) {
+      await updateDoc(bookRef, { favoritedBy: arrayRemove(userIdentifier) });
+    } else {
+      await updateDoc(bookRef, { favoritedBy: arrayUnion(userIdentifier) });
     }
+  } catch (err) {
+    console.warn("Favorite sync error:", err);
+  }
+}
 
     function updateBookDetailStats(bookId) {
       const book = books.find(b => b.id === bookId);
@@ -1422,47 +1527,58 @@
       }
     }
 
-    window.openBookDetail = async function(bookId, updateHash = true) {
-      selectedBookId = bookId;
-      localStorage.setItem('x1_selected_book', bookId);
+window.openBookDetail = async function(bookId, updateHash = true) {
+  if (!bookId) return;
 
-      if (!books || books.length === 0 || (books.length === 1 && books[0].id === 'b-1')) {
-        await loadAllDataFromFirestore();
+  selectedBookId = bookId;
+  localStorage.setItem('x1_selected_book', bookId);
+
+  // Cari buku di array lokal dulu (instant)
+  let book = books.find(b => b.id === bookId);
+
+  // Hanya fetch kalau benar-benar belum ada
+  if (!book) {
+    await loadAllDataFromFirestore();
+    book = books.find(b => b.id === bookId);
+    if (!book) {
+      localStorage.removeItem('x1_selected_book');
+      showToast("Buku tidak ditemukan.");
+      navigateTo('katalog');
+      return;
+    }
+  }
+
+  // Fire & forget — jangan blocking UI
+  if (!viewedBooks.includes(bookId)) {
+    viewedBooks.push(bookId);
+    localStorage.setItem('x1_viewed_books', JSON.stringify(viewedBooks));
+    updateDoc(doc(db, "books", bookId), { views: increment(1) })
+      .catch(err => console.warn("View increment failed:", err));
+  }
+
+  document.getElementById('detail-title').textContent = book.title;
+  document.getElementById('detail-author').textContent = 'Penulis: ' + book.author;
+  document.getElementById('detail-category').textContent = book.category;
+  document.getElementById('detail-description').textContent = book.description;
+  document.getElementById('detail-cover').src = book.cover || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&auto=format&fit=crop&q=80';
+  
+  const pagesCountEl = document.getElementById('detail-pages-count');
+  pagesCountEl.textContent = '...';
+
+  if (book.pdfUrl) {
+    loadPdfDoc(book.pdfUrl).then(doc => {
+      if (selectedBookId === bookId && pagesCountEl) {
+        pagesCountEl.textContent = doc.numPages;
       }
-
-      const book = books.find(b => b.id === bookId);
-      if(!book) {
-        localStorage.removeItem('x1_selected_book');
-        showToast("Buku tidak ditemukan.");
-        navigateTo('katalog');
-        return;
-      }
-
-      try {
-        const bookRef = doc(db, "books", bookId);
-        await updateDoc(bookRef, { views: increment(1) });
-      } catch (err) {}
-
-      document.getElementById('detail-title').textContent = book.title;
-      document.getElementById('detail-author').textContent = 'Penulis: ' + book.author;
-      document.getElementById('detail-category').textContent = book.category;
-      document.getElementById('detail-description').textContent = book.description;
-      document.getElementById('detail-cover').src = book.cover;
-      
-      const pagesCountEl = document.getElementById('detail-pages-count');
-      pagesCountEl.textContent = '...';
-
-      if (book.pdfUrl) {
-        loadPdfDoc(book.pdfUrl).then(doc => {
-          pagesCountEl.textContent = doc.numPages;
-        }).catch(() => {
-          pagesCountEl.textContent = book.pages ? book.pages.length : 1;
-        });
-      } else {
+    }).catch(() => {
+      if (selectedBookId === bookId && pagesCountEl) {
         pagesCountEl.textContent = book.pages ? book.pages.length : 1;
       }
+    });
+  } else {
+    pagesCountEl.textContent = book.pages ? book.pages.length : 1;
+  }
 
-      // RENDER TOMBOL AKSI BERDASARKAN KETERSEDIAAN PDF & EXTERNAL LINK (EMBED FRAME)
       const actionButtonsContainer = document.getElementById('detail-action-buttons');
       let buttonsHtml = '';
 
@@ -1499,7 +1615,7 @@
       renderReviewsAndRating(bookId);
       renderComments(bookId);
       navigateTo('detail', updateHash);
-    }
+}
 
     window.deleteComment = async function(commentId) {
       if (!confirm('Yakin ingin menghapus komentar ini?')) return;
@@ -1592,7 +1708,7 @@
                 ${isOwnerOrAdmin ? `<button onclick="deleteReview('${r.id}')" class="text-rose-500 hover:underline text-[11px] font-bold"><i class="ph-bold ph-trash"></i> Hapus</button>` : ''}
               </div>
             </div>
-            <p class="text-slate-600 dark:text-slate-300 leading-relaxed">${r.text}</p>
+            <p class="text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">${r.text}</p>
           </div>
         `;
       }).join('');
@@ -1656,7 +1772,7 @@
                 ${isOwnerOrAdmin ? `<button onclick="deleteComment('${c.id}')" class="text-rose-500 hover:underline text-[11px] font-bold"><i class="ph-bold ph-trash"></i> Hapus</button>` : ''}
               </div>
             </div>
-            <p class="text-slate-600 dark:text-slate-300 leading-relaxed">${c.text}</p>
+            <p class="text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">${c.text}</p>
           </div>
         `;
       }).join('');
@@ -1693,7 +1809,6 @@
       navigateTo('detail');
     }
 
-    // FUNGSI UNTUK MEMBUKA BUKU DI EMBED FRAME (IFRAME)
     window.openEmbedReaderPage = function() {
       const book = books.find(b => b.id === selectedBookId);
       if (!book || !book.externalUrl) return;
@@ -1903,7 +2018,7 @@
                 ${isOwnerOrAdmin ? `<button onclick="deleteJournal('${j.id}')" class="text-rose-500 hover:underline text-[10px]"><i class="ph-bold ph-trash"></i> Hapus</button>` : ''}
               </div>
             </div>
-            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">${j.notes}</p>
+            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">${j.notes}</p>
             <div class="text-[10px] text-slate-400 font-medium pt-1">Oleh: <span class="font-bold text-slate-600 dark:text-slate-300">${j.userName}</span></div>
           </div>
         `;
@@ -1952,7 +2067,7 @@
       }).join('');
     }
 
-    // REQUEST
+    // REQUEST BUKU
     window.submitRequest = async function(e) {
       e.preventDefault();
       requireAuth(async () => {
@@ -1982,6 +2097,27 @@
       });
     }
 
+    window.deleteRequest = async function(requestId, requestUserId) {
+      if (!currentUser) return;
+      let userIsAdmin = isAdmin;
+      try {
+        const adminDoc = await getDoc(doc(db, "admins", currentUser.uid));
+        if (adminDoc.exists()) userIsAdmin = true;
+      } catch(e) {}
+
+      if (currentUser.uid !== requestUserId && !userIsAdmin) {
+        alert("Akses ditolak! Kamu hanya bisa menghapus usulan buatanmu sendiri.");
+        return;
+      }
+
+      if (!confirm("Yakin ingin menghapus usulan buku ini?")) return;
+      try {
+        await deleteDoc(doc(db, "requests", requestId));
+        showToast("Usulan dihapus.");
+        await loadAllDataFromFirestore();
+      } catch(err) {}
+    }
+
     function renderRequests() {
       const container = document.getElementById('request-list');
       if (requests.length === 0) {
@@ -1989,16 +2125,22 @@
         return;
       }
 
-      container.innerHTML = requests.map(r => `
-        <div class="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs space-y-1 shadow-sm">
-          <div class="flex justify-between items-center font-bold">
-            <span class="text-emerald-600 dark:text-emerald-400">${r.title}</span>
-            <span class="text-[10px] text-slate-400 font-normal">${r.date || ''}</span>
+      container.innerHTML = requests.map(r => {
+        const canDelete = currentUser && (currentUser.uid === r.userId || isAdmin);
+        return `
+          <div class="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs space-y-1.5 shadow-sm">
+            <div class="flex justify-between font-bold">
+              <span class="text-slate-900 dark:text-white font-extrabold">${r.title}</span>
+              <div class="flex items-center gap-2.5">
+                <span class="text-[10px] text-slate-400 font-normal">${r.date || ''}</span>
+                ${canDelete ? `<button onclick="deleteRequest('${r.id}', '${r.userId || ''}')" class="text-rose-500 hover:text-rose-700 font-bold"><i class="ph-bold ph-trash text-sm"></i> Hapus</button>` : ''}
+              </div>
+            </div>
+            <p class="text-slate-600 dark:text-slate-300 whitespace-pre-line leading-relaxed">"${r.reason}"</p>
+            <p class="text-[10px] text-slate-400 font-medium pt-0.5">Diusulkan oleh: ${r.userName}</p>
           </div>
-          <p class="text-slate-600 dark:text-slate-300">${r.reason}</p>
-          <p class="text-[10px] text-slate-400 font-medium pt-0.5">Diusulkan oleh: ${r.userName}</p>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     // ADMIN BOOK MANAGEMENT
