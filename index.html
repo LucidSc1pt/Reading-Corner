@@ -971,26 +971,26 @@
       setViewMode(viewMode, false);
       
       let snapshotRenderTimeout = null;
-    onSnapshot(
-      collection(db, "books"),
-      (snapshot) => {
-        if (!snapshot.empty) {
-          books = snapshot.docs.map(doc => ({ id: doc.id, views: 0, favoritedBy: [], currentlyReading: [], ...doc.data() }));
-          localStorage.setItem('x1_books_cache', JSON.stringify(books));
-          clearTimeout(snapshotRenderTimeout);
-          snapshotRenderTimeout = setTimeout(() => {
-            // Skip render grid kalau sedang di detail/reader (hemat CPU)
-            const katalogView = document.getElementById('view-katalog');
-            if (katalogView && !katalogView.classList.contains('hidden')) {
-              renderBooks();
+        onSnapshot(
+          collection(db, "books"),
+          (snapshot) => {
+            if (!snapshot.empty) {
+              books = snapshot.docs.map(doc => ({ id: doc.id, views: 0, favoritedBy: [], currentlyReading: [], ...doc.data() }));
+              localStorage.setItem('x1_books_cache', JSON.stringify(books));
+              clearTimeout(snapshotRenderTimeout);
+              snapshotRenderTimeout = setTimeout(() => {
+                // Skip render grid kalau sedang di detail/reader (hemat CPU)
+                const katalogView = document.getElementById('view-katalog');
+                if (katalogView && !katalogView.classList.contains('hidden')) {
+                  renderBooks();
+                }
+                updateCollectionStats();
+                if (selectedBookId) updateBookDetailStats(selectedBookId);
+              }, 150);
             }
-            updateCollectionStats();
-            if (selectedBookId) updateBookDetailStats(selectedBookId);
-          }, 150);
-        }
-      },
-      (err) => console.warn("Books snapshot error:", err)
-    );
+          },
+          //(err) => console.warn("Books snapshot error:", err)
+        );
 
       await loadAllDataFromFirestore();
       
@@ -2179,86 +2179,268 @@ window.openBookDetail = async function(bookId, updateHash = true) {
       document.getElementById('add-book-modal').classList.add('hidden');
     }
 
-    window.saveBookEntry = async function(e) {
-      e.preventDefault();
-      if(!isAdmin) return;
+    // Helper: upload file ke Supabase Storage, return public URL atau throw error jelas
+async function uploadToStorage(folder, file) {
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const path = `${folder}/${Date.now()}_${safeName}`;
+  const { error } = await supabase.storage.from('books').upload(path, file, {
+    cacheControl: '3600',
+    upsert: false,
+    contentType: file.type || (folder === 'pdfs' ? 'application/pdf' : undefined)
+  });
+  if (error) {
+    throw new Error(`Upload ${folder} gagal: ${error.message}`);
+  }
+  const { data: publicData } = supabase.storage.from('books').getPublicUrl(path);
+  return { url: publicData.publicUrl, path };
+}
 
-      const bookId = document.getElementById('form-book-id').value;
-      const title = document.getElementById('form-book-title').value.trim();
-      const author = document.getElementById('form-book-author').value.trim();
-      const category = document.getElementById('form-book-category').value;
-      const description = document.getElementById('form-book-desc').value.trim();
-      
-      let coverUrl = document.getElementById('form-book-cover-url').value.trim();
-      let pdfUrl = document.getElementById('form-book-pdf').value.trim();
-      const externalUrl = document.getElementById('form-book-external-url').value.trim();
+// Helper: hapus file dari Supabase Storage (silent, best-effort)
+async function deleteFromStorage(path) {
+  if (!path) return;
+  try {
+    const { error } = await supabase.storage.from('books').remove([path]);
+    if (error) console.warn('Hapus file gagal:', path, error.message);
+  } catch (e) { console.warn('Hapus file error:', e); }
+}
 
-      const coverFile = document.getElementById('form-book-cover-file').files[0];
-      const pdfFile = document.getElementById('form-book-pdf-file').files[0];
+// Helper: ekstrak path dari Supabase public URL
+function storagePathFromUrl(url) {
+  if (!url || !url.includes('/storage/v1/object/public/books/')) return null;
+  const parts = url.split('/storage/v1/object/public/books/');
+  return parts[1] || null;
+}
 
-      showToast('Menyimpan data buku...');
+window.saveBookEntry = async function(e) {
+  e.preventDefault();
+  if(!isAdmin) return;
 
-      try {
-        if(coverFile) {
-          const fileName = `covers/${Date.now()}_${coverFile.name}`;
-          const { data, error } = await supabase.storage.from('books').upload(fileName, coverFile);
-          if(!error) {
-            const { data: publicData } = supabase.storage.from('books').getPublicUrl(fileName);
-            coverUrl = publicData.publicUrl;
-          }
-        }
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  const originalText = submitBtn ? submitBtn.innerHTML : '';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="ph-bold ph-circle-notch animate-spin"></i> Menyimpan...';
+  }
 
-        if(pdfFile) {
-          const fileName = `pdfs/${Date.now()}_${pdfFile.name}`;
-          const { data, error } = await supabase.storage.from('books').upload(fileName, pdfFile);
-          if(!error) {
-            const { data: publicData } = supabase.storage.from('books').getPublicUrl(fileName);
-            pdfUrl = publicData.publicUrl;
-          }
-        }
+  const bookId = document.getElementById('form-book-id').value;
+  const title = document.getElementById('form-book-title').value.trim();
+  const author = document.getElementById('form-book-author').value.trim();
+  const category = document.getElementById('form-book-category').value;
+  const description = document.getElementById('form-book-desc').value.trim();
 
-        const bookData = {
-          title,
-          author,
-          category,
-          description,
-          cover: coverUrl || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&auto=format&fit=crop&q=80',
-          pdfUrl,
-          externalUrl,
-          updatedAt: new Date().toISOString()
-        };
+  let coverUrl = document.getElementById('form-book-cover-url').value.trim();
+  let pdfUrl = document.getElementById('form-book-pdf').value.trim();
+  const externalUrl = document.getElementById('form-book-external-url').value.trim();
 
-        if(bookId) {
-          await updateDoc(doc(db, "books", bookId), bookData);
-          showToast('Buku berhasil diperbarui!');
-        } else {
-          bookData.createdAt = new Date().toISOString();
-          bookData.views = 0;
-          bookData.favoritedBy = [];
-          bookData.currentlyReading = [];
-          await addDoc(collection(db, "books"), bookData);
-          showToast('Buku baru berhasil ditambahkan!');
-        }
+  const coverFileInput = document.getElementById('form-book-cover-file');
+  const pdfFileInput = document.getElementById('form-book-pdf-file');
+  const coverFile = coverFileInput.files[0];
+  const pdfFile = pdfFileInput.files[0];
 
-        closeAddBookModal();
-        await loadAllDataFromFirestore();
-      } catch (err) {
-        showToast('Gagal menyimpan buku.');
+  // Simpan URL lama untuk dibersihkan kalau nanti ada file baru
+  const oldBook = bookId ? books.find(b => b.id === bookId) : null;
+  const oldCoverPath = oldBook ? storagePathFromUrl(oldBook.cover) : null;
+  const oldPdfPath = oldBook ? storagePathFromUrl(oldBook.pdfUrl) : null;
+
+  let newCoverPath = null;
+  let newPdfPath = null;
+
+  try {
+    // === Upload cover ===
+    if (coverFile) {
+      const result = await uploadToStorage('covers', coverFile);
+      coverUrl = result.url;
+      newCoverPath = result.path;
+    }
+
+    // === Upload PDF ===
+    if (pdfFile) {
+      const result = await uploadToStorage('pdfs', pdfFile);
+      pdfUrl = result.url;
+      newPdfPath = result.path;
+    }
+
+    const bookData = {
+      title,
+      author,
+      category,
+      description,
+      cover: coverUrl || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&auto=format&fit=crop&q=80',
+      pdfUrl: pdfUrl || '',
+      externalUrl: externalUrl || '',
+      updatedAt: new Date().toISOString()
+    };
+
+    if (bookId) {
+      await updateDoc(doc(db, "books", bookId), bookData);
+      showToast('✅ Buku berhasil diperbarui!');
+    } else {
+      bookData.createdAt = new Date().toISOString();
+      bookData.views = 0;
+      bookData.favoritedBy = [];
+      bookData.currentlyReading = [];
+      await addDoc(collection(db, "books"), bookData);
+      showToast('✅ Buku baru berhasil ditambahkan!');
+    }
+
+    // === Bersihkan file lama yang sudah tidak dipakai (kalau ada file baru) ===
+    if (newCoverPath && oldCoverPath && oldCoverPath !== newCoverPath) {
+      await deleteFromStorage(oldCoverPath);
+    }
+    if (newPdfPath && oldPdfPath && oldPdfPath !== newPdfPath) {
+      await deleteFromStorage(oldPdfPath);
+    }
+
+    // Reset form & file inputs
+    coverFileInput.value = '';
+    pdfFileInput.value = '';
+    closeAddBookModal();
+    await loadAllDataFromFirestore();
+  } catch (err) {
+    console.error('Save book error:', err);
+    // Rollback: hapus file yang sudah ke-upload supaya tidak jadi yatim
+    if (newCoverPath) await deleteFromStorage(newCoverPath);
+    if (newPdfPath) await deleteFromStorage(newPdfPath);
+    alert('❌ Gagal menyimpan buku:\n\n' + err.message);
+    showToast('❌ Gagal: ' + err.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalText;
+    }
+  }
+}
+
+window.deleteBook = async function(bookId) {
+  if(!isAdmin) return;
+  if(!confirm('Yakin ingin menghapus buku ini dari perpustakaan?\n\nFile cover & PDF-nya juga akan dihapus dari storage.')) return;
+
+  const book = books.find(b => b.id === bookId);
+
+  try {
+    await deleteDoc(doc(db, "books", bookId));
+
+    // Hapus file fisik dari Supabase Storage
+    if (book) {
+      const paths = [
+        storagePathFromUrl(book.cover),
+        storagePathFromUrl(book.pdfUrl)
+      ].filter(Boolean);
+      if (paths.length > 0) {
+        const { error } = await supabase.storage.from('books').remove(paths);
+        if (error) console.warn('Gagal hapus file buku:', error.message);
       }
     }
 
-    window.deleteBook = async function(bookId) {
-      if(!isAdmin) return;
-      if(!confirm('Yakin ingin menghapus buku ini dari perpustakaan?')) return;
+    showToast('✅ Buku & file-nya berhasil dihapus.');
+    await loadAllDataFromFirestore();
+  } catch(err) {
+    console.error(err);
+    showToast('❌ Gagal menghapus buku.');
+  }
+}
 
-      try {
-        await deleteDoc(doc(db, "books", bookId));
-        showToast('Buku berhasil dihapus.');
-        await loadAllDataFromFirestore();
-      } catch(err) {
-        showToast('Gagal menghapus buku.');
+// ===== FITUR: Cleanup file yatim di Supabase Storage =====
+window.cleanupOrphanedFiles = async function() {
+  if (!isAdmin) {
+    alert('Akses ditolak. Hanya admin yang bisa menjalankan fitur ini.');
+    return;
+  }
+
+  if (!confirm('Scan dan hapus file yang TIDAK dirujuk oleh buku manapun?\n\n' +
+               'File yang masih dipakai buku AKAN DIPERTAHANKAN.\n\n' +
+               '⚠️ Tindakan ini tidak bisa dibatalkan. Lanjutkan?')) return;
+
+  showToast('🔍 Sedang scan file yatim...');
+
+  try {
+    // === 1. Ambil URL yang sedang digunakan (fresh dari Firestore) ===
+    const snap = await getDocs(collection(db, 'books'));
+    const usedUrls = new Set();
+    snap.docs.forEach(d => {
+      const b = d.data();
+      if (b.cover) usedUrls.add(b.cover);
+      if (b.pdfUrl) usedUrls.add(b.pdfUrl);
+    });
+
+    // === 2. List semua file di bucket ===
+    const allFiles = [];
+
+    async function listAll(folder) {
+      // Supabase Storage list max 1000 per request → loop offset
+      let offset = 0;
+      const limit = 1000;
+      while (true) {
+        const { data, error } = await supabase.storage.from('books').list(folder, { limit, offset });
+        if (error) throw new Error(`Gagal list ${folder}: ${error.message}`);
+        if (!data || data.length === 0) break;
+        data.forEach(f => {
+          // Skip folder placeholder
+          if (!f.name || f.name === '.emptyFolderPlaceholder') return;
+          // Skip subfolder (kalau ada)
+          if (f.id === null && f.metadata === null) return;
+          allFiles.push({ path: `${folder}/${f.name}`, name: f.name, folder });
+        });
+        if (data.length < limit) break;
+        offset += limit;
       }
     }
+
+    await listAll('covers');
+    await listAll('pdfs');
+
+    // === 3. Cari file yatim ===
+    const baseUrl = `${SUPABASE_URL}/storage/v1/object/public/books/`;
+    const orphans = allFiles.filter(f => {
+      const fullUrl = baseUrl + f.path;
+      return !usedUrls.has(fullUrl);
+    });
+
+    if (orphans.length === 0) {
+      showToast('✅ Semua bersih! Tidak ada file yatim.');
+      alert(`✅ Bersih!\n\nTotal file di storage: ${allFiles.length}\nFile yatim: 0`);
+      return;
+    }
+
+    // === 4. Konfirmasi akhir ===
+    const preview = orphans.slice(0, 8).map(o => '• ' + o.path).join('\n');
+    const more = orphans.length > 8 ? `\n... dan ${orphans.length - 8} file lainnya` : '';
+    const ok = confirm(
+      `Ditemukan ${orphans.length} file yatim dari total ${allFiles.length} file:\n\n` +
+      preview + more +
+      '\n\nHapus SEMUA file yatim? (File yang dipakai tetap aman)'
+    );
+    if (!ok) {
+      showToast('Cleanup dibatalkan.');
+      return;
+    }
+
+    // === 5. Hapus bertahap (batch 50 untuk aman) ===
+    let deleted = 0;
+    const batchSize = 50;
+    for (let i = 0; i < orphans.length; i += batchSize) {
+      const batch = orphans.slice(i, i + batchSize).map(o => o.path);
+      const { error } = await supabase.storage.from('books').remove(batch);
+      if (error) {
+        console.warn('Batch delete error:', error.message);
+      } else {
+        deleted += batch.length;
+      }
+    }
+
+    showToast(`✅ Selesai! ${deleted} dari ${orphans.length} file yatim dihapus.`);
+    alert(
+      `✅ Cleanup selesai!\n\n` +
+      `Total file diperiksa : ${allFiles.length}\n` +
+      `File masih dipakai    : ${allFiles.length - orphans.length}\n` +
+      `File yatim dihapus   : ${deleted}\n` +
+      `Gagal dihapus        : ${orphans.length - deleted}`
+    );
+  } catch (err) {
+    console.error('Cleanup error:', err);
+    alert('❌ Cleanup gagal:\n\n' + err.message);
+  }
+};
   </script>
 </body>
 </html>
